@@ -27,7 +27,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome</Text>
       <TextInput style={styles.input} placeholder="Your name" value={name} onChangeText={setName} />
-      <Text style={styles.label}>Floor (if you're an employee)</Text>
+      <Text style={styles.label}>Floor (if you&apos;re an employee)</Text>
       <View style={styles.floorRow}>
         {floors.map((f) => (
           <Pressable key={f} style={[styles.floorChip, floor === f && styles.floorChipActive]} onPress={() => setFloor(f)}>
