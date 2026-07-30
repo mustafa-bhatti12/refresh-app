@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Location01Icon, Note01Icon, CancelCircleIcon } from "@hugeicons/core-free-icons";
+import { Location01Icon, Note01Icon, CancelCircleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import type { Order } from "@/context/RefreshContext";
@@ -35,6 +35,10 @@ export function OrderRow({
           <Text style={s.dailyNumber}>{dailyNumber}</Text> {order.drink} <Text style={s.meta}>({order.sugar}{order.strength ? `, ${order.strength}` : ""})</Text>
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 }}>
+          <HugeiconsIcon icon={UserIcon} size={12} color={colors.quietZinc} />
+          <Text style={s.employeeName}>{order.employeeName}</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 }}>
           <HugeiconsIcon icon={Location01Icon} size={12} color={colors.quietZinc} />
           <Text style={s.meta}>{order.floor}</Text>
           <Text style={s.meta}>· {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
@@ -45,7 +49,6 @@ export function OrderRow({
             <Text style={s.note}>{order.note}</Text>
           </View>
         )}
-        <Text style={s.employeeName}>{order.employeeName}</Text>
       </View>
 
       <View style={{ alignItems: "flex-end", gap: 6 }}>
@@ -70,7 +73,7 @@ const styles = (colors: ColorRamp) =>
     dailyNumber: { fontWeight: "800" },
     meta: { fontSize: 11, color: colors.quietZinc },
     note: { flex: 1, fontSize: 11, color: colors.softZinc, fontStyle: "italic" },
-    employeeName: { fontSize: 10, color: colors.softZinc, marginTop: 3 },
+    employeeName: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
     actionButton: { backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
     actionButtonDisabled: { opacity: 0.6 },
     actionButtonText: { color: colors.white, fontSize: 11, fontWeight: "700" },

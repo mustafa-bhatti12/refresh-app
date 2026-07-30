@@ -9,6 +9,7 @@ import { lightColors } from "@/constants/colors";
 export default function TabsLayout() {
   const { currentUser, activeReviewOrder, isMandatoryReview, setReviewOrderId, submitReview, getDailyOrderNumber } = useRefresh();
   const isAdmin = currentUser?.role === "Admin";
+  const isBrewer = currentUser?.role === "Brewer";
 
   return (
     <>
@@ -23,6 +24,7 @@ export default function TabsLayout() {
           name="order"
           options={{
             title: "Order",
+            href: isBrewer ? null : undefined,
             tabBarIcon: ({ color, size }) => <HugeiconsIcon icon={Coffee01Icon} size={size} color={color} />,
           }}
         />
@@ -30,7 +32,7 @@ export default function TabsLayout() {
           name="my-orders"
           options={{
             title: "My Orders",
-            href: isAdmin ? null : undefined,
+            href: isAdmin || isBrewer ? null : undefined,
             tabBarIcon: ({ color, size }) => <HugeiconsIcon icon={ReceiptTextIcon} size={size} color={color} />,
           }}
         />
