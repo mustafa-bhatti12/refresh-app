@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { OFFICE_FLOORS } from "../lib/floors";
+import { signOutGoogle } from "../lib/google-signin";
 import {
   clearAuthCache,
   readAuthCache,
@@ -323,6 +324,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setLoading(true);
     await clearAuthCache();
     await supabase.auth.signOut();
+    await signOutGoogle();
     setAuthUser(null);
     setLoading(false);
   };

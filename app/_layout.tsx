@@ -63,7 +63,7 @@ export default function RootLayout() {
       <AuthGate>
         <Stack screenOptions={{ headerShown: false }} />
       </AuthGate>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </RefreshProvider>
   );
 }

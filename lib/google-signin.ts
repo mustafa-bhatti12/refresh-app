@@ -27,3 +27,11 @@ export async function signInWithGoogle(): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+export async function signOutGoogle(): Promise<void> {
+  try {
+    await GoogleSignin.signOut();
+  } catch {
+    // not signed in on the native side — nothing to clear
+  }
+}
