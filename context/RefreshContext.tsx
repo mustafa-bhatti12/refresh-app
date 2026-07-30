@@ -325,11 +325,468 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setLoading(false);
   };
 
-  // Remaining fields (orders/employees/brewers/beverages/service-hours/settings CRUD
-  // and their realtime subscriptions) are added in Task 8, in the same provider body.
-  // This placeholder throws so it's obvious if Task 8 is skipped.
-  const notYetImplemented = (name: string) => () => {
-    throw new Error(`${name} not implemented yet — see Task 8`);
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id, employee_id, floor_name, drink_name, sugar:sugar_level, strength, note, status,
+          created_at, updated_at, feedback_rating, feedback_comments, custom_name, brewer_id,
+          profiles!employee_id ( name ), brewer:profiles!brewer_id ( name )
+        `)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching orders:", error.message);
+        return;
+      }
+      const mappedOrders = data.map((o: any) => ({
+        id: String(o.id),
+        employeeId: o.employee_id,
+        employeeName: o.custom_name || o.profiles?.name || "Anonymous Employee",
+        floor: o.floor_name,
+        drink: o.drink_name,
+        sugar: o.sugar,
+        brewerId: o.brewer_id,
+        brewerName: o.brewer?.name || null,
+        strength: o.strength,
+        note: o.note,
+        status: o.status === "Delivered" && o.feedback_comments === "__NOT_FOUND__" ? ("Not Found" as const) : o.status,
+        createdAt: o.created_at,
+        updatedAt: o.updated_at || o.created_at,
+        feedbackRating: o.feedback_comments === "__NOT_FOUND__" ? null : o.feedback_rating,
+        feedbackComments: o.feedback_comments,
+      }));
+      setOrders(mappedOrders);
+      const mappedReviews = data
+        .filter((o: any) => o.feedback_rating !== null && o.feedback_comments !== "__NOT_FOUND__")
+        .map((o: any) => ({
+          id: o.id,
+          orderId: o.id,
+          employeeName: o.profiles?.name || o.custom_name || "Anonymous Employee",
+          drinkName: o.drink_name,
+          rating: o.feedback_rating,
+          comments: o.feedback_comments || "",
+          createdAt: o.created_at,
+          brewerName: o.brewer?.name || null,
+        }));
+      setReviews(mappedReviews);
+    } catch (err) {
+      console.error("Orders fetching exception:", err);
+    }
+  };
+
+  const fetchBrewersList = async () => {
+    try {
+      const { data, error } = await supabase.from("profiles").select("id, name, email, status, avatar_url").eq("role", "brewer");
+      if (error) {
+        console.error("Error fetching brewers:", error.message);
+        return;
+      }
+      if (data) {
+        setBrewers(
+          data.map((b: any) => ({
+            id: b.id,
+            name: b.name,
+            contact: b.email || "",
+            status: (b.status === "On Break" ? "On Break" : b.status === "Off" ? "Off" : "Active") as "Active" | "On Break" | "Off",
+            avatar_url: b.avatar_url || "",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Brewers fetching exception:", err);
+    }
+  };
+
+  const fetchEmployeesList = async () => {
+    try {
+      const { data, error } = await supabase.from("profiles").select("id, name, email, avatar_url").eq("role", "employee");
+      if (error) {
+        console.error("Error fetching employees:", error.message);
+        return;
+      }
+      setEmployees(data.map((e: any) => ({ id: e.id, name: e.name, contact: e.email || "N/A", avatar_url: e.avatar_url || "" })));
+    } catch (err) {
+      console.error("Employees fetching exception:", err);
+    }
+  };
+
+  const fetchBrewerInvites = async () => {
+    try {
+      const { data, error } = await supabase.from("brewer_invites").select("email, name").order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching brewer invites:", error.message);
+        return;
+      }
+      if (data) setBrewerInvites(data);
+    } catch (err) {
+      console.error("Brewer invites fetching exception:", err);
+    }
+  };
+
+  const fetchBeverages = async () => {
+    try {
+      const { data, error } = await supabase.from("beverages").select("id, name, icon, enabled, sort_order").order("sort_order", { ascending: true });
+      if (error) {
+        console.error("Error fetching beverages:", error.message);
+        return;
+      }
+      if (data) {
+        setBeverages(data.map((b: any) => ({ id: b.id, name: b.name, icon: b.icon, enabled: b.enabled, sortOrder: b.sort_order })));
+      }
+    } catch (err) {
+      console.error("Beverages fetching exception:", err);
+    }
+  };
+
+  const fetchServiceHours = async () => {
+    try {
+      const { data, error } = await supabase.from("service_hours").select("id, label, start_time, end_time, days_of_week").order("start_time", { ascending: true });
+      if (error) {
+        console.error("Error fetching service hours:", error.message);
+        return;
+      }
+      if (data) {
+        setServiceHours(
+          data.map((slot: any) => ({
+            id: slot.id,
+            label: slot.label,
+            start_time: slot.start_time.substring(0, 5),
+            end_time: slot.end_time.substring(0, 5),
+            days_of_week: slot.days_of_week ?? [0, 1, 2, 3, 4, 5, 6],
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Service hours fetching exception:", err);
+    }
+  };
+
+  const fetchCooldownSetting = async () => {
+    try {
+      const { data, error } = await supabase.from("settings").select("*").eq("key", "cooldown_limit_enabled").maybeSingle();
+      if (error) {
+        console.error("Error fetching cooldown setting:", error.message);
+        return;
+      }
+      if (data) {
+        const isEnabled = data.value !== undefined ? data.value === "true" : data.start_time === "true";
+        setCooldownLimitEnabled(isEnabled);
+      } else {
+        setCooldownLimitEnabled(true);
+      }
+    } catch (err) {
+      console.error("Exception fetching cooldown setting:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setOrders([]);
+      setReviews([]);
+      setEmployees([]);
+      setBrewers([]);
+      setBeverages([]);
+      return;
+    }
+    fetchOrders();
+    fetchBrewersList();
+    fetchEmployeesList();
+    fetchBrewerInvites();
+    fetchServiceHours();
+    fetchCooldownSetting();
+    fetchBeverages();
+
+    const ordersChannel = supabase.channel("realtime-orders").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders()).subscribe();
+    const profilesChannel = supabase.channel("realtime-profiles").on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+      fetchBrewersList();
+      fetchEmployeesList();
+    }).subscribe();
+    const settingsChannel = supabase.channel("realtime-settings").on("postgres_changes", { event: "*", schema: "public", table: "service_hours" }, () => fetchServiceHours()).subscribe();
+    const settingsTableChannel = supabase.channel("realtime-settings-table").on("postgres_changes", { event: "*", schema: "public", table: "settings" }, () => fetchCooldownSetting()).subscribe();
+    const beveragesChannel = supabase.channel("realtime-beverages").on("postgres_changes", { event: "*", schema: "public", table: "beverages" }, () => fetchBeverages()).subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(settingsTableChannel);
+      supabase.removeChannel(beveragesChannel);
+    };
+  }, [currentUser?.id]);
+
+  const placeOrder = async (floor: string, drink: string, sugar: string, strength?: string, note?: string) => {
+    if (!currentUser) return;
+    const { error } = await supabase.rpc("place_order", {
+      p_floor: floor,
+      p_drink: drink,
+      p_sugar: sugar,
+      p_strength: strength || null,
+      p_note: note?.trim() || null,
+    });
+    if (error) {
+      console.error("Error placing order:", error.message);
+      throw new Error(error.message);
+    }
+  };
+
+  const cancelOrder = async (id: string) => {
+    try {
+      const { error } = await supabase.from("orders").delete().eq("id", id).eq("status", "Pending");
+      if (error) console.error("Error cancelling order:", error.message);
+    } catch (err) {
+      console.error("Exception cancelling order:", err);
+    }
+  };
+
+  const updateOrderStatus = async (
+    id: string,
+    newStatus: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found",
+    expectedCurrentStatus?: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found"
+  ) => {
+    let updatePayload: Record<string, unknown> = { status: newStatus, brewer_id: currentUser?.id };
+    if (newStatus === "Not Found") {
+      updatePayload = { status: "Delivered", feedback_comments: "__NOT_FOUND__", brewer_id: currentUser?.id };
+    }
+    const baseQuery = supabase.from("orders").update(updatePayload).eq("id", id);
+    const query = expectedCurrentStatus ? baseQuery.eq("status", expectedCurrentStatus) : baseQuery;
+    const { data, error } = await query.select("id");
+    if (error) {
+      console.error("Error updating status:", error.message);
+      throw new Error(error.message);
+    }
+    if (expectedCurrentStatus && (!data || data.length === 0)) {
+      await fetchOrders();
+      throw new Error("This order was already updated by another brewer.");
+    }
+  };
+
+  const updateOrderDetails = async (id: string, drink: string, sugar: string, floor: string) => {
+    try {
+      const { error } = await supabase.from("orders").update({ drink_name: drink, sugar_level: sugar, floor_name: floor }).eq("id", id);
+      if (error) console.error("Error updating order details:", error.message);
+    } catch (err) {
+      console.error("Exception updating order details:", err);
+    }
+  };
+
+  const submitReview = async (orderId: string, rating: number, comments: string) => {
+    try {
+      const { error } = await supabase.from("orders").update({ feedback_rating: rating, feedback_comments: comments }).eq("id", orderId);
+      if (error) console.error("Error submitting review:", error.message);
+    } catch (err) {
+      console.error("Exception submitting review:", err);
+    }
+  };
+
+  const removeBrewerInvite = async (email: string) => {
+    try {
+      const { error } = await supabase.from("brewer_invites").delete().eq("email", email.trim().toLowerCase());
+      if (error) {
+        console.error("Error removing brewer invite:", error.message);
+        return;
+      }
+      setBrewerInvites((prev) => prev.filter((inv) => inv.email !== email));
+    } catch (err) {
+      console.error("Exception removing brewer invite:", err);
+    }
+  };
+
+  const deleteEmployee = async (id: string) => {
+    try {
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+      if (error) console.error("Error deleting employee:", error.message);
+    } catch (err) {
+      console.error("Exception deleting employee:", err);
+    }
+  };
+
+  const updateEmployee = async (id: string, name: string, contact: string) => {
+    try {
+      const { error } = await supabase.from("profiles").update({ name, email: contact }).eq("id", id);
+      if (error) console.error("Error updating employee:", error.message);
+    } catch (err) {
+      console.error("Exception updating employee:", err);
+    }
+  };
+
+  const addBrewer = async (name: string, contact: string) => {
+    const email = contact.trim().toLowerCase();
+    if (!email) throw new Error("An email address is required to pre-assign a Brewer.");
+    try {
+      const { error } = await supabase.from("brewer_invites").upsert({ email, name: name.trim() });
+      if (error) {
+        console.error("Error adding brewer invite:", error.message);
+        throw new Error(error.message);
+      }
+      await fetchBrewerInvites();
+    } catch (err) {
+      console.error("Exception adding brewer invite:", err);
+      throw err;
+    }
+  };
+
+  const deleteBrewer = async (id: string) => {
+    try {
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+      if (error) console.error("Error deleting brewer:", error.message);
+    } catch (err) {
+      console.error("Exception deleting brewer:", err);
+    }
+  };
+
+  const updateBrewer = async (id: string, name: string, contact: string) => {
+    try {
+      const { error } = await supabase.from("profiles").update({ name, email: contact }).eq("id", id);
+      if (error) console.error("Error updating brewer:", error.message);
+    } catch (err) {
+      console.error("Exception updating brewer:", err);
+    }
+  };
+
+  const updateBrewerStatus = async (id: string, status: "Active" | "On Break" | "Off") => {
+    try {
+      setCurrentUser((prev) => {
+        if (!prev || prev.id !== id) return prev;
+        const next = { ...prev, status };
+        void writeAuthCache(next, needsRoleSelection);
+        return next;
+      });
+      const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
+      if (error) console.error("Error updating status:", error.message);
+    } catch (err) {
+      console.error("Exception updating status:", err);
+    }
+  };
+
+  const addServiceHour = async (label: string, start: string, end: string, daysOfWeek: number[]) => {
+    try {
+      const { error } = await supabase.from("service_hours").insert({ label: label.trim(), start_time: `${start}:00`, end_time: `${end}:00`, days_of_week: daysOfWeek });
+      if (error) console.error("Error adding service hour:", error.message);
+    } catch (err) {
+      console.error("Exception adding service hour:", err);
+    }
+  };
+
+  const deleteServiceHour = async (id: string) => {
+    try {
+      const { error } = await supabase.from("service_hours").delete().eq("id", id);
+      if (error) console.error("Error deleting service hour:", error.message);
+    } catch (err) {
+      console.error("Exception deleting service hour:", err);
+    }
+  };
+
+  const updateServiceHour = async (id: string, label: string, start: string, end: string, daysOfWeek: number[]) => {
+    try {
+      const { error } = await supabase
+        .from("service_hours")
+        .update({
+          label: label.trim(),
+          start_time: start.split(":").length === 2 ? `${start}:00` : start,
+          end_time: end.split(":").length === 2 ? `${end}:00` : end,
+          days_of_week: daysOfWeek,
+        })
+        .eq("id", id);
+      if (error) console.error("Error updating service hour:", error.message);
+    } catch (err) {
+      console.error("Exception updating service hour:", err);
+    }
+  };
+
+  const addBeverage = async (name: string, icon: string) => {
+    try {
+      const { error } = await supabase.from("beverages").insert({ name: name.trim(), icon, sort_order: beverages.length });
+      if (error) {
+        console.error("Error adding beverage:", error.message);
+        throw new Error(error.message);
+      }
+      await fetchBeverages();
+    } catch (err) {
+      console.error("Exception adding beverage:", err);
+      throw err;
+    }
+  };
+
+  const updateBeverage = async (id: string, name: string, icon: string) => {
+    const trimmed = name.trim();
+    setBeverages((prev) => prev.map((b) => (b.id === id ? { ...b, name: trimmed, icon } : b)));
+    try {
+      const { error } = await supabase.from("beverages").update({ name: trimmed, icon }).eq("id", id);
+      if (error) {
+        console.error("Error updating beverage:", error.message);
+        await fetchBeverages();
+      }
+    } catch (err) {
+      console.error("Exception updating beverage:", err);
+      await fetchBeverages();
+    }
+  };
+
+  const toggleBeverageEnabled = async (id: string, enabled: boolean) => {
+    setBeverages((prev) => prev.map((b) => (b.id === id ? { ...b, enabled } : b)));
+    try {
+      const { error } = await supabase.from("beverages").update({ enabled }).eq("id", id);
+      if (error) {
+        console.error("Error toggling beverage:", error.message);
+        await fetchBeverages();
+      }
+    } catch (err) {
+      console.error("Exception toggling beverage:", err);
+      await fetchBeverages();
+    }
+  };
+
+  const deleteBeverage = async (id: string) => {
+    const prevBeverages = beverages;
+    setBeverages((prev) => prev.filter((b) => b.id !== id));
+    try {
+      const { error } = await supabase.from("beverages").delete().eq("id", id);
+      if (error) {
+        console.error("Error deleting beverage:", error.message);
+        setBeverages(prevBeverages);
+      }
+    } catch (err) {
+      console.error("Exception deleting beverage:", err);
+      setBeverages(prevBeverages);
+    }
+  };
+
+  const toggleCooldownLimit = async (enabled: boolean) => {
+    try {
+      setCooldownLimitEnabled(enabled);
+      const valStr = enabled ? "true" : "false";
+      const { error } = await supabase.from("settings").upsert({ key: "cooldown_limit_enabled", value: valStr });
+      if (error) {
+        const { error: fallbackError } = await supabase.from("settings").upsert({ key: "cooldown_limit_enabled", start_time: valStr });
+        if (fallbackError) console.error("Error toggling cooldown limit fallback:", fallbackError.message);
+      }
+    } catch (err) {
+      console.error("Exception toggling cooldown limit:", err);
+    }
+  };
+
+  const updateAvatarUrl = async (avatarUrl: string) => {
+    try {
+      const { error } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", currentUser?.id);
+      if (error) {
+        console.error("Error updating avatar:", error.message);
+        return;
+      }
+      if (currentUser) setAuthUser({ ...currentUser, avatar_url: avatarUrl }, needsRoleSelection);
+    } catch (err) {
+      console.error("Exception updating avatar:", err);
+    }
+  };
+
+  const getDailyOrderNumber = (orderId: string, createdAt: string) => {
+    if (!createdAt) return "";
+    const dateStr = createdAt.substring(0, 10);
+    const dayOrders = [...orders]
+      .filter((o) => o.createdAt && o.createdAt.substring(0, 10) === dateStr)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const index = dayOrders.findIndex((o) => o.id === orderId);
+    return index !== -1 ? `#${index + 1}` : "";
   };
 
   return (
@@ -339,10 +796,10 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
         floors,
         drinks,
         beverages,
-        addBeverage: notYetImplemented("addBeverage"),
-        updateBeverage: notYetImplemented("updateBeverage"),
-        toggleBeverageEnabled: notYetImplemented("toggleBeverageEnabled"),
-        deleteBeverage: notYetImplemented("deleteBeverage"),
+        addBeverage,
+        updateBeverage,
+        toggleBeverageEnabled,
+        deleteBeverage,
         sugarOptions,
         strengthOptions,
         employees,
@@ -352,28 +809,28 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
         currentUser,
         loading,
         logout,
-        placeOrder: notYetImplemented("placeOrder"),
-        updateOrderStatus: notYetImplemented("updateOrderStatus"),
-        refreshOrders: notYetImplemented("refreshOrders"),
-        updateOrderDetails: notYetImplemented("updateOrderDetails"),
-        cancelOrder: notYetImplemented("cancelOrder"),
-        submitReview: notYetImplemented("submitReview"),
+        placeOrder,
+        updateOrderStatus,
+        refreshOrders: fetchOrders,
+        updateOrderDetails,
+        cancelOrder,
+        submitReview,
         cooldownLimitEnabled,
-        toggleCooldownLimit: notYetImplemented("toggleCooldownLimit"),
-        deleteEmployee: notYetImplemented("deleteEmployee"),
-        updateEmployee: notYetImplemented("updateEmployee"),
-        addBrewer: notYetImplemented("addBrewer"),
-        removeBrewerInvite: notYetImplemented("removeBrewerInvite"),
-        deleteBrewer: notYetImplemented("deleteBrewer"),
-        updateBrewer: notYetImplemented("updateBrewer"),
-        updateBrewerStatus: notYetImplemented("updateBrewerStatus"),
+        toggleCooldownLimit,
+        deleteEmployee,
+        updateEmployee,
+        addBrewer,
+        removeBrewerInvite,
+        deleteBrewer,
+        updateBrewer,
+        updateBrewerStatus,
         systemDate,
         serviceHours,
-        addServiceHour: notYetImplemented("addServiceHour"),
-        deleteServiceHour: notYetImplemented("deleteServiceHour"),
-        updateServiceHour: notYetImplemented("updateServiceHour"),
-        updateAvatarUrl: notYetImplemented("updateAvatarUrl"),
-        getDailyOrderNumber: () => "",
+        addServiceHour,
+        deleteServiceHour,
+        updateServiceHour,
+        updateAvatarUrl,
+        getDailyOrderNumber,
         needsRoleSelection,
         completeOnboarding,
       }}
