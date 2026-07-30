@@ -47,7 +47,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="admin"
           options={{
-            title: "Admin",
+            title: "Dashboard",
             href: isAdmin ? undefined : null,
             tabBarIcon: ({ color, size }) => <HugeiconsIcon icon={ShieldUserIcon} size={size} color={color} />,
           }}

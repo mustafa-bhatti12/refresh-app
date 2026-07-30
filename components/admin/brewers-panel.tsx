@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, Alert, StyleSheet } from "react-native";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import type { BrewerInvite, BrewerItem } from "@/context/RefreshContext";
@@ -25,6 +27,7 @@ export function BrewersPanel({
 }) {
   const colors = useColors();
   const s = styles(colors);
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [adding, setAdding] = useState(false);
@@ -80,7 +83,15 @@ export function BrewersPanel({
 
   return (
     <View style={s.card}>
-      <Text style={s.title}>Brewers</Text>
+      <Pressable style={s.headerRow} onPress={() => setOpen((v) => !v)}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.title}>Brewers</Text>
+          <Text style={s.headerMeta}>{brewers.length} brewer{brewers.length !== 1 ? "s" : ""}</Text>
+        </View>
+        <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={16} color={colors.softZinc} />
+      </Pressable>
+      {open && (
+      <View style={s.body}>
       <Text style={s.subtitle}>Pre-assign by email — they become a Brewer automatically the first time they sign in with that Google account.</Text>
 
       <TextInput style={s.input} value={name} onChangeText={setName} placeholder="Brewer name" placeholderTextColor={colors.softZinc} />
@@ -156,6 +167,8 @@ export function BrewersPanel({
           );
         })}
       </View>
+      </View>
+      )}
     </View>
   );
 }
@@ -163,8 +176,11 @@ export function BrewersPanel({
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
-    subtitle: { fontSize: 11, color: colors.softZinc, marginTop: 4, marginBottom: 12 },
+    headerMeta: { fontSize: 11, color: colors.softZinc, marginTop: 2 },
+    body: { marginTop: 12 },
+    subtitle: { fontSize: 11, color: colors.softZinc, marginBottom: 12 },
     subLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.softZinc, marginBottom: 6 },
     input: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 12, color: colors.ink, backgroundColor: colors.white, marginBottom: 8 },
     inlineInput: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 6, fontSize: 12, color: colors.ink, backgroundColor: colors.white },

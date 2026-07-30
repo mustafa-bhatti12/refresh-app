@@ -74,9 +74,10 @@ export function AdminScreen() {
       <ScrollView contentContainerStyle={s.scrollContent}>
         <View>
           <Text style={s.headline}>Admin Control Panel</Text>
-          <Text style={s.subheadline}>Today: {systemDate}</Text>
+          <Text style={s.subheadline}>Today&apos;s Date: {systemDate}</Text>
         </View>
 
+        <Text style={s.filterLabel}>Filter</Text>
         <View style={s.filterRow}>
           <Pressable
             onPress={() => {
@@ -122,9 +123,13 @@ export function AdminScreen() {
         <View style={s.card}>
           <Text style={s.title}>Office Floors</Text>
           <Text style={s.subtitle}>Fixed building floors. Employees pick one during onboarding.</Text>
-          {floors.map((floor, idx) => (
-            <Text key={floor} style={[s.floorRow, idx === floors.length - 1 && { borderBottomWidth: 0 }]}>{floor}</Text>
-          ))}
+          <View style={s.floorChipRow}>
+            {floors.map((floor) => (
+              <View key={floor} style={s.floorChip}>
+                <Text style={s.floorChipText}>{floor}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <EmployeesPanel employees={employees} onDelete={deleteEmployee} />
@@ -161,6 +166,7 @@ const styles = (colors: ColorRamp) =>
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
     headline: { fontSize: 24, fontWeight: "800", letterSpacing: -0.3, color: colors.ink },
     subheadline: { fontSize: 12, color: colors.softZinc, marginTop: 2 },
+    filterLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.softZinc, marginTop: -4 },
     filterRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
     filterChip: { flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, backgroundColor: colors.white },
     filterChipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
@@ -171,5 +177,7 @@ const styles = (colors: ColorRamp) =>
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
     subtitle: { fontSize: 11, color: colors.softZinc, marginTop: 4, marginBottom: 8 },
-    floorRow: { fontSize: 13, fontWeight: "600", color: colors.slateZinc, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.dividerZinc },
+    floorChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    floorChip: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: colors.white },
+    floorChipText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
   });

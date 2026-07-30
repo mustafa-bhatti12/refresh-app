@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, Platform, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Clock01Icon, LockIcon, SquareUnlock01Icon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, LockIcon, SquareUnlock01Icon, ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 
@@ -98,6 +98,7 @@ export function ServiceHoursPanel({
 }) {
   const colors = useColors();
   const s = styles(colors);
+  const [open, setOpen] = useState(false);
 
   const [newLabel, setNewLabel] = useState("");
   const [newStart, setNewStart] = useState("09:00");
@@ -138,7 +139,15 @@ export function ServiceHoursPanel({
 
   return (
     <View style={s.card}>
-      <Text style={s.title}>Service Availability</Text>
+      <Pressable style={s.headerRow} onPress={() => setOpen((v) => !v)}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.title}>Service Availability</Text>
+          <Text style={s.headerMeta}>{serviceHours.length} slot{serviceHours.length !== 1 ? "s" : ""}{cooldownLimitEnabled ? " · cooldown on" : ""}</Text>
+        </View>
+        <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={16} color={colors.softZinc} />
+      </Pressable>
+      {open && (
+      <View style={s.body}>
       <Text style={s.subtitle}>Employees can order if the current time matches any slot.</Text>
 
       {serviceHours.length === 0 ? (
@@ -231,6 +240,8 @@ export function ServiceHoursPanel({
           </Text>
         </Pressable>
       </View>
+      </View>
+      )}
     </View>
   );
 }
@@ -238,8 +249,11 @@ export function ServiceHoursPanel({
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
-    subtitle: { fontSize: 11, color: colors.softZinc, marginTop: 4, marginBottom: 12 },
+    headerMeta: { fontSize: 11, color: colors.softZinc, marginTop: 2 },
+    body: { marginTop: 12 },
+    subtitle: { fontSize: 11, color: colors.softZinc, marginBottom: 12 },
     emptyText: { fontSize: 12, color: colors.softZinc, textAlign: "center", paddingVertical: 16 },
     slotRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.dividerZinc },
     slotLabel: { fontSize: 13, fontWeight: "700", color: colors.ink },
