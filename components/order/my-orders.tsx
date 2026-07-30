@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, Alert, StyleSheet } from "react-native";
+import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   InboxIcon,
@@ -112,7 +112,7 @@ export function MyOrdersPanel({
           <Text style={s.emptySubtitle}>Use the form above to order.</Text>
         </View>
       ) : (
-        <ScrollView style={{ maxHeight: 420 }}>
+        <View>
           {orders.map((order, idx) => {
             const hasReview = reviewedOrderIds.has(order.id);
             const isEditing = editingOrderId === order.id;
@@ -181,7 +181,7 @@ export function MyOrdersPanel({
               </View>
             );
           })}
-        </ScrollView>
+        </View>
       )}
     </View>
   );

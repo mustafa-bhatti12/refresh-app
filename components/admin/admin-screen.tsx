@@ -14,14 +14,12 @@ import { BrewersPanel } from "./brewers-panel";
 import { ServiceHoursPanel } from "./service-hours-panel";
 import { BeveragePanel } from "./beverage-panel";
 import { OrderHistoryPanel } from "./order-history-panel";
-import { ReviewModal } from "@/components/order/review-modal";
 
 export function AdminScreen() {
   const colors = useColors();
   const s = styles(colors);
   const router = useRouter();
   const {
-    currentUser,
     orders,
     reviews,
     floors,
@@ -47,8 +45,6 @@ export function AdminScreen() {
     toggleBeverageEnabled,
     deleteBeverage,
     getDailyOrderNumber,
-    submitReview,
-    logout,
     dataLoading,
   } = useRefresh();
 
@@ -60,16 +56,6 @@ export function AdminScreen() {
   const dayOrders = filterMode === "all" ? orders : orders.filter((o) => o.createdAt.split("T")[0] === activeFilterDate);
   const dayReviews = filterMode === "all" ? reviews : reviews.filter((r) => r.createdAt.split("T")[0] === activeFilterDate);
   const avgRating = dayReviews.length ? (dayReviews.reduce((acc, r) => acc + r.rating, 0) / dayReviews.length).toFixed(1) : "N/A";
-
-  const unreviewedOrder = currentUser
-    ? orders.find(
-        (o) =>
-          o.employeeId === currentUser.id &&
-          o.status === "Delivered" &&
-          o.feedbackComments !== "__NOT_FOUND__" &&
-          (o.feedbackRating === undefined || o.feedbackRating === null)
-      )
-    : undefined;
 
   if (dataLoading) {
     return (
@@ -86,14 +72,9 @@ export function AdminScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView contentContainerStyle={s.scrollContent}>
-        <View style={s.topRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.headline}>Admin Control Panel</Text>
-            <Text style={s.subheadline}>Today: {systemDate}</Text>
-          </View>
-          <Pressable onPress={() => logout()} style={s.logoutButton}>
-            <Text style={s.logoutText}>Log Out</Text>
-          </Pressable>
+        <View>
+          <Text style={s.headline}>Admin Control Panel</Text>
+          <Text style={s.subheadline}>Today: {systemDate}</Text>
         </View>
 
         <View style={s.filterRow}>
@@ -171,18 +152,6 @@ export function AdminScreen() {
 
         <OrderHistoryPanel orders={dayOrders} getDailyOrderNumber={getDailyOrderNumber} />
       </ScrollView>
-
-      {unreviewedOrder && (
-        <ReviewModal
-          order={unreviewedOrder}
-          dailyNumber={getDailyOrderNumber(unreviewedOrder.id, unreviewedOrder.createdAt)}
-          mandatory
-          onSubmit={async (rating, comments) => {
-            await submitReview(unreviewedOrder.id, rating, comments);
-          }}
-          onCancel={() => {}}
-        />
-      )}
     </View>
   );
 }
@@ -190,11 +159,8 @@ export function AdminScreen() {
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
-    topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
     headline: { fontSize: 24, fontWeight: "800", letterSpacing: -0.3, color: colors.ink },
     subheadline: { fontSize: 12, color: colors.softZinc, marginTop: 2 },
-    logoutButton: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.white },
-    logoutText: { fontSize: 12, fontWeight: "700", color: colors.slateZinc },
     filterRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
     filterChip: { flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, backgroundColor: colors.white },
     filterChipActive: { backgroundColor: colors.ink, borderColor: colors.ink },

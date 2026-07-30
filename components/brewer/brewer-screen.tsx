@@ -22,7 +22,7 @@ const NEXT_STATUS: Record<string, Order["status"] | undefined> = {
 
 const COMPLETED_DISPLAY_LIMIT = 8;
 
-export function BrewerScreen() {
+export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   const colors = useColors();
   const s = styles(colors);
   const {
@@ -170,9 +170,11 @@ export function BrewerScreen() {
       <ScrollView contentContainerStyle={s.scrollContent}>
         <View style={s.topRow}>
           <Text style={s.headline}>Order Queue</Text>
-          <Pressable onPress={() => logout()} style={s.logoutButton}>
-            <Text style={s.logoutText}>Log Out</Text>
-          </Pressable>
+          {!embedded && (
+            <Pressable onPress={() => logout()} style={s.logoutButton}>
+              <Text style={s.logoutText}>Log Out</Text>
+            </Pressable>
+          )}
         </View>
 
         {isPaused && (

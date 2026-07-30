@@ -47,7 +47,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (route === "loading") return;
     if (route === "sign-in" && current !== "sign-in") router.replace("/sign-in");
     if (route === "onboarding" && current !== "onboarding") router.replace("/onboarding");
-    if (route === "home" && current !== "home") router.replace("/home");
+    if (route === "home") {
+      if (currentUser?.role === "Brewer") {
+        if (current !== "home") router.replace("/home");
+      } else if (current !== "(tabs)") {
+        router.replace("/order");
+      }
+    }
   }, [loading, currentUser, needsRoleSelection, segments, router]);
 
   if (loading) {

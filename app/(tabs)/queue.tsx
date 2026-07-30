@@ -1,9 +1,9 @@
 import { Redirect } from "expo-router";
 import { useRefresh } from "@/context/RefreshContext";
-import { FeedbackScreen } from "@/components/admin/feedback-screen";
+import { BrewerScreen } from "@/components/brewer/brewer-screen";
 
-export default function AdminFeedback() {
+export default function Queue() {
   const { currentUser } = useRefresh();
   if (currentUser?.role !== "Admin") return <Redirect href="/order" />;
-  return <FeedbackScreen />;
+  return <BrewerScreen embedded />;
 }

@@ -97,6 +97,9 @@ interface RefreshContextType {
   updateOrderDetails: (id: string, drink: string, sugar: string, floor: string) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
   submitReview: (orderId: string, rating: number, comments: string) => Promise<void>;
+  activeReviewOrder: Order | undefined;
+  isMandatoryReview: boolean;
+  setReviewOrderId: (id: string | null) => void;
   cooldownLimitEnabled: boolean;
   toggleCooldownLimit: (enabled: boolean) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
@@ -143,6 +146,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
+  const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
 
   const setAuthUser = (
     user: RefreshUser | null,
@@ -587,6 +591,18 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const unreviewedOrder = currentUser
+    ? orders.find(
+        (o) =>
+          o.employeeId === currentUser.id &&
+          o.status === "Delivered" &&
+          o.feedbackComments !== "__NOT_FOUND__" &&
+          (o.feedbackRating === undefined || o.feedbackRating === null)
+      )
+    : undefined;
+  const activeReviewOrder = unreviewedOrder || (reviewOrderId ? orders.find((o) => o.id === reviewOrderId) : undefined);
+  const isMandatoryReview = !!unreviewedOrder;
+
   const removeBrewerInvite = async (email: string) => {
     try {
       const { error } = await supabase.from("brewer_invites").delete().eq("email", email.trim().toLowerCase());
@@ -824,6 +840,9 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateOrderDetails,
         cancelOrder,
         submitReview,
+        activeReviewOrder,
+        isMandatoryReview,
+        setReviewOrderId,
         cooldownLimitEnabled,
         toggleCooldownLimit,
         deleteEmployee,
