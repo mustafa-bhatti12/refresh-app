@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
@@ -16,6 +17,7 @@ const COOLDOWN_MINS = 180;
 export function OrderScreen() {
   const colors = useColors();
   const s = styles(colors);
+  const router = useRouter();
   const {
     currentUser,
     orders,
@@ -169,9 +171,16 @@ export function OrderScreen() {
             <Text style={s.headline}>Place an Order</Text>
             <Text style={s.subheadline}>Choose your drink and preferences. We&apos;ll take care of the rest.</Text>
           </View>
-          <Pressable onPress={() => logout()} style={s.logoutButton}>
-            <Text style={s.logoutText}>Log Out</Text>
-          </Pressable>
+          <View style={{ gap: 8 }}>
+            {currentUser?.role === "Admin" && (
+              <Pressable onPress={() => router.push("/admin")} style={s.adminButton}>
+                <Text style={s.adminButtonText}>Admin Panel</Text>
+              </Pressable>
+            )}
+            <Pressable onPress={() => logout()} style={s.logoutButton}>
+              <Text style={s.logoutText}>Log Out</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={s.statRow}>
@@ -235,6 +244,8 @@ const styles = (colors: ColorRamp) =>
     topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
     logoutButton: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.white },
     logoutText: { fontSize: 12, fontWeight: "700", color: colors.slateZinc },
+    adminButton: { backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+    adminButtonText: { fontSize: 12, fontWeight: "700", color: colors.white },
     headerRow: { gap: 4, flex: 1 },
     headline: { fontSize: 28, fontWeight: "800", letterSpacing: -0.4, color: colors.ink },
     subheadline: { fontSize: 14, color: colors.quietZinc },

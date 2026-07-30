@@ -42,5 +42,7 @@ export const BEVERAGE_ICONS: Record<string, typeof Coffee01Icon> = {
   DrinkIcon,
 };
 
+export const BEVERAGE_ICON_NAMES = Object.keys(BEVERAGE_ICONS);
+
 export const getBeverageIcon = (name: string | undefined | null): typeof Coffee01Icon =>
   (name && BEVERAGE_ICONS[name]) || Coffee01Icon;
