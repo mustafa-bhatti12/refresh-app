@@ -1,0 +1,46 @@
+import {
+  Coffee01Icon,
+  Coffee02Icon,
+  Coffee03Icon,
+  Coffee04Icon,
+  CoffeeBeansIcon,
+  TeaIcon,
+  TeaPodIcon,
+  BubbleTea01Icon,
+  BubbleTea02Icon,
+  Leaf02Icon,
+  MilkBottleIcon,
+  MilkCartonIcon,
+  MilkCoconutIcon,
+  MilkOatIcon,
+  SodaCanIcon,
+  SoftDrink01Icon,
+  SoftDrink02Icon,
+  WaterEnergyIcon,
+  DrinkIcon,
+} from "@hugeicons/core-free-icons";
+
+export const BEVERAGE_ICONS: Record<string, typeof Coffee01Icon> = {
+  Coffee01Icon,
+  Coffee02Icon,
+  Coffee03Icon,
+  Coffee04Icon,
+  CoffeeBeansIcon,
+  TeaIcon,
+  TeaPodIcon,
+  BubbleTea01Icon,
+  BubbleTea02Icon,
+  Leaf02Icon,
+  MilkBottleIcon,
+  MilkCartonIcon,
+  MilkCoconutIcon,
+  MilkOatIcon,
+  SodaCanIcon,
+  SoftDrink01Icon,
+  SoftDrink02Icon,
+  WaterEnergyIcon,
+  DrinkIcon,
+};
+
+export const getBeverageIcon = (name: string | undefined | null): typeof Coffee01Icon =>
+  (name && BEVERAGE_ICONS[name]) || Coffee01Icon;
