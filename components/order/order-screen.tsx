@@ -6,6 +6,8 @@ import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
+import { writeSavedFloor } from "@/lib/saved-floor";
+import { CardSkeleton } from "@/components/card-skeleton";
 import { OrderForm } from "./order-form";
 import { MyOrdersPanel } from "./my-orders";
 import { BrewersBoard } from "./brewers-board";
@@ -32,6 +34,7 @@ export function OrderScreen() {
     submitReview,
     getDailyOrderNumber,
     logout,
+    dataLoading,
   } = useRefresh();
 
   const [isAvailable, setIsAvailable] = useState(true);
@@ -113,6 +116,7 @@ export function OrderScreen() {
   const handlePlaceOrder = async (floor: string, drink: string, sugar: string, strength: string, note: string) => {
     try {
       await placeOrder(floor, drink, sugar, strength, note);
+      void writeSavedFloor(floor);
       announce(`Order placed successfully for ${drink}!`);
     } catch (err) {
       Alert.alert("Order failed", err instanceof Error ? err.message : "Failed to place order.");
@@ -124,6 +128,7 @@ export function OrderScreen() {
     setIsReordering(true);
     try {
       await placeOrder(order.floor, order.drink, order.sugar, order.strength || undefined, undefined);
+      void writeSavedFloor(order.floor);
       announce(`Order placed successfully for ${order.drink}!`);
     } catch (err) {
       Alert.alert("Order failed", err instanceof Error ? err.message : "Failed to place order.");
@@ -162,6 +167,18 @@ export function OrderScreen() {
     setReviewOrderId(null);
     announce("Thank you for confirming delivery!");
   };
+
+  if (dataLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.paper }}>
+        <ScrollView contentContainerStyle={s.scrollContent}>
+          <CardSkeleton lines={4} />
+          <CardSkeleton lines={2} />
+          <CardSkeleton lines={2} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>

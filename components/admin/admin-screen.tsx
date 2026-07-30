@@ -7,6 +7,7 @@ import { Sun01Icon, GlobeIcon, Calendar01Icon } from "@hugeicons/core-free-icons
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
+import { CardSkeleton } from "@/components/card-skeleton";
 import { AnalyticsPanel } from "./analytics-panel";
 import { EmployeesPanel } from "./employees-panel";
 import { BrewersPanel } from "./brewers-panel";
@@ -48,6 +49,7 @@ export function AdminScreen() {
     getDailyOrderNumber,
     submitReview,
     logout,
+    dataLoading,
   } = useRefresh();
 
   const [filterMode, setFilterMode] = useState<"day" | "all">("day");
@@ -68,6 +70,18 @@ export function AdminScreen() {
           (o.feedbackRating === undefined || o.feedbackRating === null)
       )
     : undefined;
+
+  if (dataLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.paper }}>
+        <ScrollView contentContainerStyle={s.scrollContent}>
+          <CardSkeleton lines={3} />
+          <CardSkeleton lines={4} />
+          <CardSkeleton lines={2} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>

@@ -6,6 +6,7 @@ import { PauseIcon, Notification01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
+import { CardSkeleton } from "@/components/card-skeleton";
 import { OrderRow } from "./order-row";
 import { CompletedOrderRow } from "./completed-order-row";
 import { OrderStatusSection } from "./order-status-section";
@@ -33,6 +34,7 @@ export function BrewerScreen() {
     refreshOrders,
     logout,
     getDailyOrderNumber,
+    dataLoading,
   } = useRefresh();
 
   const [actioningOrderId, setActioningOrderId] = useState<string | null>(null);
@@ -69,6 +71,18 @@ export function BrewerScreen() {
   }, [pendingOrders.length]);
 
   if (!currentUser) return null;
+
+  if (dataLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.paper }}>
+        <ScrollView contentContainerStyle={s.scrollContent}>
+          <CardSkeleton lines={2} />
+          <CardSkeleton lines={3} />
+          <CardSkeleton lines={2} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   const isPaused = currentUser.status !== "Active";
 

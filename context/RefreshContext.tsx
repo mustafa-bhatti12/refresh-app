@@ -84,6 +84,7 @@ interface RefreshContextType {
   reviews: Review[];
   currentUser: RefreshUser | null;
   loading: boolean;
+  dataLoading: boolean;
   logout: () => Promise<void>;
   placeOrder: (floor: string, drink: string, sugar: string, strength?: string, note?: string) => Promise<void>;
   updateOrderStatus: (
@@ -140,6 +141,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentUser, setCurrentUser] = useState<RefreshUser | null>(null);
   const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const setAuthUser = (
     user: RefreshUser | null,
@@ -487,15 +489,19 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setEmployees([]);
       setBrewers([]);
       setBeverages([]);
+      setDataLoading(true);
       return;
     }
-    fetchOrders();
-    fetchBrewersList();
-    fetchEmployeesList();
-    fetchBrewerInvites();
-    fetchServiceHours();
-    fetchCooldownSetting();
-    fetchBeverages();
+    setDataLoading(true);
+    Promise.all([
+      fetchOrders(),
+      fetchBrewersList(),
+      fetchEmployeesList(),
+      fetchBrewerInvites(),
+      fetchServiceHours(),
+      fetchCooldownSetting(),
+      fetchBeverages(),
+    ]).finally(() => setDataLoading(false));
 
     const ordersChannel = supabase.channel("realtime-orders").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders()).subscribe();
     const profilesChannel = supabase.channel("realtime-profiles").on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
@@ -808,6 +814,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
         reviews,
         currentUser,
         loading,
+        dataLoading,
         logout,
         placeOrder,
         updateOrderStatus,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -16,6 +16,7 @@ import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
 import { getBeverageIcon } from "@/lib/beverage-icons";
+import { readSavedFloor } from "@/lib/saved-floor";
 
 function formatCooldown(mins: number) {
   if (mins <= 0) return "";
@@ -51,6 +52,15 @@ export function OrderForm({
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.floor) return;
+    readSavedFloor().then((saved) => {
+      if (saved && floors.includes(saved)) setFloor(saved);
+    });
+    // Only ever check once on mount — the user's own selection afterward should win.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async () => {
     if (!floor || !drink || !sugar) return;
