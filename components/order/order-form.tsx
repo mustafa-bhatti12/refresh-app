@@ -48,7 +48,6 @@ export function OrderForm({
   const [floor, setFloor] = useState(currentUser?.floor || floors[0] || "");
   const [drink, setDrink] = useState(beverages.find((b) => b.enabled)?.name || "");
   const [sugar, setSugar] = useState(sugarOptions[0] || "");
-  const [strength, setStrength] = useState(strengthOptions[1] || strengthOptions[0] || "");
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -62,11 +61,13 @@ export function OrderForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const defaultStrength = strengthOptions[1] || strengthOptions[0] || "";
+
   const handleSubmit = async () => {
     if (!floor || !drink || !sugar) return;
     setSubmitting(true);
     try {
-      await onSubmit(floor, drink, sugar, strength, note);
+      await onSubmit(floor, drink, sugar, defaultStrength, note);
       setNote("");
       setShowNote(false);
     } finally {
@@ -123,7 +124,7 @@ export function OrderForm({
                   </View>
                 )}
                 <HugeiconsIcon icon={DrinkIcon} size={26} color={colors.ink} />
-                <Text style={s.drinkName}>{bev.name}</Text>
+                <Text style={s.drinkName} numberOfLines={1}>{bev.name}</Text>
                 {!bev.enabled && <Text style={s.drinkUnavailable}>Unavailable</Text>}
               </Pressable>
             );
@@ -147,17 +148,6 @@ export function OrderForm({
               <Pressable key={opt} onPress={() => setSugar(opt)} style={[s.prefChip, selected && s.chipActive]}>
                 <HugeiconsIcon icon={opt === "Sugar" ? CheckmarkCircle01Icon : Cancel01Icon} size={15} color={selected ? colors.white : colors.slateZinc} />
                 <Text style={[s.prefChipText, selected && s.chipTextActive]}>{opt === "Sugar" ? "With Sugar" : "Sugar-Free"}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <Text style={[s.label, { marginTop: 12 }]}>Strength</Text>
-        <View style={s.chipRow}>
-          {strengthOptions.map((opt) => {
-            const selected = strength === opt;
-            return (
-              <Pressable key={opt} onPress={() => setStrength(opt)} style={[s.strengthChip, selected && s.chipActive]}>
-                <Text style={[s.prefChipText, selected && s.chipTextActive]}>{opt}</Text>
               </Pressable>
             );
           })}
@@ -195,7 +185,6 @@ export function OrderForm({
       {floor && drink && sugar && (
         <Text style={s.summary}>
           {floor} · {drink} · {sugar === "Sugar" ? "With Sugar" : "Sugar-Free"}
-          {strength ? ` · ${strength}` : ""}
         </Text>
       )}
 
@@ -243,12 +232,11 @@ const styles = (colors: ColorRamp) =>
     floorChipText: { fontSize: 13, fontWeight: "600", color: colors.slateZinc },
     prefChip: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, backgroundColor: colors.white },
     prefChipText: { fontSize: 13, fontWeight: "500", color: colors.slateZinc },
-    strengthChip: { flex: 1, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, alignItems: "center", backgroundColor: colors.white },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipTextActive: { color: colors.white },
     label: { fontSize: 11, fontWeight: "600", color: colors.quietZinc, marginBottom: 6 },
     drinkGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-    drinkTile: { width: "31%", minWidth: 96, borderWidth: 2, borderColor: colors.dividerZinc, borderRadius: 12, paddingVertical: 16, alignItems: "center", gap: 6, backgroundColor: colors.white },
+    drinkTile: { flexBasis: "48%", flexGrow: 1, height: 100, justifyContent: "center", borderWidth: 2, borderColor: colors.dividerZinc, borderRadius: 12, alignItems: "center", gap: 6, backgroundColor: colors.white },
     drinkTileSelected: { borderColor: colors.ink },
     drinkTileDisabled: { opacity: 0.5, borderColor: colors.surfaceZinc },
     drinkCheck: { position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: 9999, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },

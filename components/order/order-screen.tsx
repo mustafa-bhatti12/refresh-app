@@ -14,7 +14,7 @@ const COOLDOWN_MINS = 180;
 export function OrderScreen() {
   const colors = useColors();
   const s = styles(colors);
-  const { currentUser, orders, brewers, serviceHours, cooldownLimitEnabled, systemDate, placeOrder, dataLoading } = useRefresh();
+  const { currentUser, orders, brewers, serviceHours, cooldownLimitEnabled, placeOrder, dataLoading } = useRefresh();
 
   const [isAvailable, setIsAvailable] = useState(true);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
@@ -97,20 +97,8 @@ export function OrderScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView contentContainerStyle={s.scrollContent}>
-        <View style={s.statRow}>
-          <View style={s.statCard}>
-            <Text style={s.statLabel}>Service Slots</Text>
-            <Text style={s.statValue}>{isAvailable ? "Open" : "Closed"}</Text>
-          </View>
-          <View style={s.statCard}>
-            <Text style={s.statLabel}>Work Day</Text>
-            <Text style={s.statValue}>{systemDate}</Text>
-          </View>
-        </View>
-
         <View style={s.headerRow}>
           <Text style={s.headline}>Place an Order</Text>
-          <Text style={s.subheadline}>Choose your drink and preferences. We&apos;ll take care of the rest.</Text>
         </View>
 
         <OrderForm
@@ -139,11 +127,6 @@ const styles = (colors: ColorRamp) =>
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
     headerRow: { gap: 4 },
     headline: { fontSize: 28, fontWeight: "800", letterSpacing: -0.4, color: colors.ink },
-    subheadline: { fontSize: 14, color: colors.quietZinc },
-    statRow: { flexDirection: "row", gap: 10 },
-    statCard: { flex: 1, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, borderRadius: 8, padding: 12 },
-    statLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.softZinc },
-    statValue: { fontSize: 14, fontWeight: "700", color: colors.ink, marginTop: 4 },
     toast: {
       position: "absolute",
       bottom: 24,
