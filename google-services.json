@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735755617315",
+    "project_id": "refresh-6a10a",
+    "storage_bucket": "refresh-6a10a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735755617315:android:1850494c2572ccc55fdd96",
+        "android_client_info": {
+          "package_name": "com.hofglobal.refresh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVVyybQXbbhhaw_3RU0oxwA7Fv7scyNsQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
