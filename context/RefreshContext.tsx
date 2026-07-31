@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { OFFICE_FLOORS } from "../lib/floors";
 import { signOutGoogle } from "../lib/google-signin";
+import { registerForPushNotificationsAsync } from "../lib/push-notifications";
 import {
   clearAuthCache,
   readAuthCache,
@@ -326,6 +327,11 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const logout = async () => {
     setLoading(true);
+    // Clear before signing out — the same device/installation can be reused by a
+    // different user next (e.g. a shared brewer station), and this token isn't theirs.
+    if (currentUser?.id) {
+      await supabase.from("profiles").update({ expo_push_token: null }).eq("id", currentUser.id);
+    }
     await clearAuthCache();
     await supabase.auth.signOut();
     await signOutGoogle();
@@ -525,6 +531,20 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
       supabase.removeChannel(settingsTableChannel);
       supabase.removeChannel(beveragesChannel);
     };
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    registerForPushNotificationsAsync().then((token) => {
+      if (!token) return;
+      supabase
+        .from("profiles")
+        .update({ expo_push_token: token })
+        .eq("id", currentUser.id)
+        .then(({ error }) => {
+          if (error) console.error("Error saving push token:", error.message);
+        });
+    });
   }, [currentUser?.id]);
 
   const placeOrder = async (floor: string, drink: string, sugar: string, strength?: string, note?: string) => {
