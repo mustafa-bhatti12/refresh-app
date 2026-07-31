@@ -116,7 +116,8 @@ export function MyOrdersPanel({
           {orders.map((order, idx) => {
             const hasReview = reviewedOrderIds.has(order.id);
             const isEditing = editingOrderId === order.id;
-            const queuePosition = order.status === "Pending" ? queuePositionOf(order.id) : null;
+            const queuePosition =
+              order.status === "Pending" || order.status === "In Progress" ? queuePositionOf(order.id) : null;
 
             return (
               <View key={order.id} style={[s.orderRow, idx === orders.length - 1 && { borderBottomWidth: 0 }]}>

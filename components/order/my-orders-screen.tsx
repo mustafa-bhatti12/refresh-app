@@ -19,8 +19,10 @@ export function MyOrdersScreen() {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
 
+  // Orders not yet confirmed (Pending or In Progress) across everyone, oldest first —
+  // excludes Ready/Delivered so the count shrinks as orders ahead get made.
   const pendingQueue = [...orders]
-    .filter((o) => o.status === "Pending")
+    .filter((o) => o.status === "Pending" || o.status === "In Progress")
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   const queuePositionOf = (orderId: string) => {
     const idx = pendingQueue.findIndex((o) => o.id === orderId);
