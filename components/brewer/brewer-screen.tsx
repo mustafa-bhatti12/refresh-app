@@ -55,6 +55,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   const prevPendingCount = useRef<number | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const sectionY = useRef<Record<"inProgress" | "ready" | "completed", number>>({ inProgress: 0, ready: 0, completed: 0 });
+  const brewerStats = useBrewerStats();
 
   const todaysOrders = orders.filter((o) => o.createdAt.startsWith(systemDate));
   const pendingOrders = todaysOrders.filter((o) => o.status === "Pending");
@@ -154,13 +155,8 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     }
   };
 
-  const brewerStats = useBrewerStats();
-  const avgOrderMins = brewerStats.avgOrderTimeLabel
-    ? Number(brewerStats.avgOrderTimeLabel.split(":")[0]) * 60 + Number(brewerStats.avgOrderTimeLabel.split(":")[1])
-    : null;
-
   const ordersAhead = pendingOrders.length + inProgressOrders.length;
-  const estWaitMins = avgOrderMins !== null && ordersAhead > 0 ? avgOrderMins * ordersAhead : null;
+  const estWaitMins = brewerStats.avgOrderMins !== null && ordersAhead > 0 ? brewerStats.avgOrderMins * ordersAhead : null;
 
   const renderRows = (list: Order[]) =>
     list.map((order, idx) => (
@@ -250,7 +246,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
         </View>
 
         <QuickActions isPaused={isPaused} isTogglingPause={pauseToggling} isRefreshing={isRefreshing} onTogglePause={handleTogglePause} onRefresh={handleRefresh} />
-        <BrewerStats totalToday={todaysOrders.length} completedToday={completedOrders.length} inProgressToday={inProgressOrders.length} avgOrderTimeLabel={avgOrderLabel} />
+        <BrewerStats {...brewerStats} />
       </ScrollView>
 
       {!embedded && (

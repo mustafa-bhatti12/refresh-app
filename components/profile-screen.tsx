@@ -1,10 +1,13 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
+import { useBrewerStats } from "@/hooks/use-brewer-stats";
+import { BrewerStats } from "@/components/brewer/brewer-stats";
 
 function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,17 +19,20 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
   const colors = useColors();
   const s = styles(colors);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { currentUser, logout } = useRefresh();
+  const brewerStats = useBrewerStats();
 
   if (!currentUser) return null;
 
+  const isBrewer = currentUser.role === "Brewer";
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <ScrollView contentContainerStyle={s.scrollContent}>
+      <ScrollView contentContainerStyle={[s.scrollContent, standalone && { paddingTop: insets.top + 8 }]}>
         {standalone && (
-          <Pressable onPress={() => router.back()} style={s.backLink}>
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color={colors.quietZinc} />
-            <Text style={s.backLinkText}>Back</Text>
+          <Pressable onPress={() => router.back()} style={s.backButton}>
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={colors.ink} strokeWidth={2} />
           </Pressable>
         )}
         <View style={s.card}>
@@ -46,6 +52,8 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
           )}
         </View>
 
+        {isBrewer && <BrewerStats {...brewerStats} />}
+
         <Pressable onPress={() => logout()} style={s.logoutButton}>
           <Text style={s.logoutText}>Log Out</Text>
         </Pressable>
@@ -57,8 +65,7 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
-    backLink: { flexDirection: "row", alignItems: "center", gap: 6 },
-    backLinkText: { fontSize: 12, fontWeight: "600", color: colors.quietZinc },
+    backButton: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
     card: { alignItems: "center", borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 24, gap: 6 },
     avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center", marginBottom: 8 },
     avatarText: { color: colors.white, fontSize: 22, fontWeight: "700" },
