@@ -8,6 +8,7 @@ import { PauseIcon, Notification01Icon, PlayIcon, CheckmarkCircle02Icon, ListVie
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
+import { useBrewerStats } from "@/hooks/use-brewer-stats";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { OrderRow } from "./order-row";
 import { CompletedOrderRow } from "./completed-order-row";
@@ -153,13 +154,10 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     }
   };
 
-  const deliveredToday = todaysOrders.filter((o) => o.status === "Delivered");
-  const avgOrderMs =
-    deliveredToday.length > 0
-      ? deliveredToday.reduce((sum, o) => sum + (new Date(o.updatedAt).getTime() - new Date(o.createdAt).getTime()), 0) / deliveredToday.length
-      : null;
-  const avgOrderMins = avgOrderMs !== null ? Math.max(0, Math.round(avgOrderMs / 60000)) : null;
-  const avgOrderLabel = avgOrderMins !== null ? `${Math.floor(avgOrderMins / 60)}:${String(avgOrderMins % 60).padStart(2, "0")}` : null;
+  const brewerStats = useBrewerStats();
+  const avgOrderMins = brewerStats.avgOrderTimeLabel
+    ? Number(brewerStats.avgOrderTimeLabel.split(":")[0]) * 60 + Number(brewerStats.avgOrderTimeLabel.split(":")[1])
+    : null;
 
   const ordersAhead = pendingOrders.length + inProgressOrders.length;
   const estWaitMins = avgOrderMins !== null && ordersAhead > 0 ? avgOrderMins * ordersAhead : null;
@@ -266,7 +264,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
               </Pressable>
             );
           })}
-          <Pressable style={s.navItem} onPress={() => router.push("/profile")}>
+          <Pressable style={s.navItem} onPress={() => router.push("/brewer-profile")}>
             <HugeiconsIcon icon={User03Icon} size={20} color={colors.softZinc} strokeWidth={1.5} />
             <Text style={s.navLabel}>Profile</Text>
           </Pressable>

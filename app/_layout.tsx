@@ -49,7 +49,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (route === "onboarding" && current !== "onboarding") router.replace("/onboarding");
     if (route === "home") {
       if (currentUser?.role === "Brewer") {
-        if (current !== "home") router.replace("/home");
+        if (current !== "home" && current !== "brewer-profile") router.replace("/home");
       } else if (current !== "(tabs)") {
         router.replace("/order");
       }

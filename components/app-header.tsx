@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, Alert, StyleSheet, Platform } from "react-native";
+import { View, Text, Image, Pressable, Alert, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -24,7 +24,7 @@ export function AppHeader() {
         <Text style={s.title}>Refresh</Text>
       </View>
       <View style={s.actions}>
-        <Pressable style={s.avatar} onPress={() => router.push("/profile")}>
+        <Pressable style={s.avatar} onPress={() => router.push(currentUser?.role === "Brewer" ? "/brewer-profile" : "/profile")}>
           <Text style={s.avatarText}>{currentUser ? initialsOf(currentUser.name) : "?"}</Text>
         </Pressable>
         {/* ponytail: notifications center not built yet, stub until in-app notifications ships */}
@@ -50,9 +50,8 @@ const s = StyleSheet.create({
   brand: { flexDirection: "row", alignItems: "center", gap: 8 },
   logo: { width: 28, height: 28 },
   title: {
-    fontSize: 20,
-    fontStyle: "italic",
-    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }),
+    fontSize: 18,
+    fontWeight: "700",
     color: lightColors.ink,
     includeFontPadding: false,
     textAlignVertical: "center",

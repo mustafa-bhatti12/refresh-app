@@ -1,4 +1,7 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
@@ -9,9 +12,10 @@ function initialsOf(name: string) {
   return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
   const colors = useColors();
   const s = styles(colors);
+  const router = useRouter();
   const { currentUser, logout } = useRefresh();
 
   if (!currentUser) return null;
@@ -19,6 +23,12 @@ export function ProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView contentContainerStyle={s.scrollContent}>
+        {standalone && (
+          <Pressable onPress={() => router.back()} style={s.backLink}>
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color={colors.quietZinc} />
+            <Text style={s.backLinkText}>Back</Text>
+          </Pressable>
+        )}
         <View style={s.card}>
           <View style={s.avatar}>
             <Text style={s.avatarText}>{initialsOf(currentUser.name)}</Text>
@@ -47,6 +57,8 @@ export function ProfileScreen() {
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
+    backLink: { flexDirection: "row", alignItems: "center", gap: 6 },
+    backLinkText: { fontSize: 12, fontWeight: "600", color: colors.quietZinc },
     card: { alignItems: "center", borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 24, gap: 6 },
     avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center", marginBottom: 8 },
     avatarText: { color: colors.white, fontSize: 22, fontWeight: "700" },
