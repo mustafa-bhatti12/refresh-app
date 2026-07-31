@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, Alert, StyleSheet } from "react-native";
+import { View, Text, Image, Pressable, Alert, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -49,7 +49,15 @@ const s = StyleSheet.create({
   },
   brand: { flexDirection: "row", alignItems: "center", gap: 8 },
   logo: { width: 28, height: 28 },
-  title: { fontSize: 18, fontWeight: "800", color: lightColors.ink },
+  title: {
+    fontSize: 20,
+    fontStyle: "italic",
+    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }),
+    color: lightColors.ink,
+    includeFontPadding: false,
+    textAlignVertical: "center",
+    lineHeight: 28,
+  },
   actions: { flexDirection: "row", alignItems: "center", gap: 14 },
   avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: lightColors.ink, alignItems: "center", justifyContent: "center" },
   avatarText: { color: lightColors.white, fontSize: 13, fontWeight: "700" },
