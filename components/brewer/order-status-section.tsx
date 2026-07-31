@@ -1,4 +1,7 @@
-import { View, Text, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 
@@ -9,6 +12,7 @@ export function OrderStatusSection({
   emptyMessage,
   isEmpty,
   children,
+  collapsible,
 }: {
   title: string;
   subtitle: string;
@@ -16,22 +20,31 @@ export function OrderStatusSection({
   emptyMessage: string;
   isEmpty: boolean;
   children: React.ReactNode;
+  collapsible?: boolean;
 }) {
   const colors = useColors();
   const s = styles(colors);
+  const [collapsed, setCollapsed] = useState(!!collapsible);
 
   return (
     <View style={s.section}>
-      <View style={s.header}>
+      <Pressable
+        style={s.header}
+        onPress={collapsible ? () => setCollapsed((c) => !c) : undefined}
+        disabled={!collapsible}
+      >
         <Text style={s.title}>{title}</Text>
         <View style={s.countPill}>
           <Text style={s.countText}>{count}</Text>
         </View>
-      </View>
+        {collapsible && (
+          <HugeiconsIcon icon={collapsed ? ArrowDown01Icon : ArrowUp01Icon} size={16} color={colors.softZinc} />
+        )}
+      </Pressable>
       <Text style={s.subtitle}>{subtitle}</Text>
-      <View style={s.card}>
-        {isEmpty ? <Text style={s.emptyText}>{emptyMessage}</Text> : children}
-      </View>
+      {!(collapsible && collapsed) && (
+        <View style={s.card}>{isEmpty ? <Text style={s.emptyText}>{emptyMessage}</Text> : children}</View>
+      )}
     </View>
   );
 }
@@ -39,7 +52,7 @@ export function OrderStatusSection({
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     section: { marginBottom: 8 },
-    header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2 },
+    header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2, alignSelf: "flex-start" },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
     countPill: { backgroundColor: colors.surfaceZinc, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
     countText: { fontSize: 11, fontWeight: "700", color: colors.midZinc },

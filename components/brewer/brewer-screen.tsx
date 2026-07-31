@@ -235,7 +235,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
         </View>
 
         <View onLayout={onSectionLayout("completed")}>
-          <OrderStatusSection title="Completed" subtitle="Recently completed orders today." count={completedOrders.length} emptyMessage="Nothing completed yet today." isEmpty={completedList.length === 0}>
+          <OrderStatusSection title="Completed" subtitle="Recently completed orders today." count={completedOrders.length} emptyMessage="Nothing completed yet today." isEmpty={completedList.length === 0} collapsible>
             {completedList.map((order, idx) => (
               <View key={order.id} style={idx === completedList.length - 1 ? { borderBottomWidth: 0 } : undefined}>
                 <CompletedOrderRow order={order} dailyNumber={getDailyOrderNumber(order.id, order.createdAt)} />

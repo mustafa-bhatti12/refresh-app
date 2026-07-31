@@ -9,9 +9,15 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
   if (!Device.isDevice) return null;
 
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.DEFAULT,
+    // Separate channels per event so users can mute/configure each independently
+    // in system settings; HIGH importance makes both show as heads-up banners.
+    await Notifications.setNotificationChannelAsync("new-order", {
+      name: "New order",
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+    await Notifications.setNotificationChannelAsync("order-ready", {
+      name: "Order ready",
+      importance: Notifications.AndroidImportance.HIGH,
     });
   }
 
