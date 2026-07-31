@@ -82,7 +82,7 @@ export function BeveragePanel({
                   onPress={async () => {
                     setTogglingId(bev.id);
                     try {
-                      await onToggle(bev.id, bev.enabled);
+                      await onToggle(bev.id, !bev.enabled);
                     } finally {
                       setTogglingId(null);
                     }

@@ -30,6 +30,10 @@ export async function signInWithGoogle(): Promise<void> {
 
 export async function signOutGoogle(): Promise<void> {
   try {
+    // Configure first — on app launch from a persisted session, signInWithGoogle()
+    // (the only other caller of configure) never ran, so signOut() would otherwise
+    // throw on an unconfigured module and silently leave the native session intact.
+    configureGoogleSignIn();
     await GoogleSignin.signOut();
   } catch {
     // not signed in on the native side — nothing to clear
