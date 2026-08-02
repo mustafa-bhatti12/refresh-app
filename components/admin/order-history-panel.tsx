@@ -46,10 +46,24 @@ export function OrderHistoryPanel({ orders, getDailyOrderNumber }: { orders: Ord
             <View style={s.pager}>
               <Text style={s.pagerText}>Page {clampedPage} of {totalPages}</Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <Pressable disabled={clampedPage <= 1} onPress={() => setPage(clampedPage - 1)} style={[s.pagerButton, clampedPage <= 1 && s.pagerButtonDisabled]}>
+                <Pressable
+                  disabled={clampedPage <= 1}
+                  onPress={() => setPage(clampedPage - 1)}
+                  style={[s.pagerButton, clampedPage <= 1 && s.pagerButtonDisabled]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Previous page"
+                  accessibilityState={{ disabled: clampedPage <= 1 }}
+                >
                   <Text style={s.pagerButtonText}>Previous</Text>
                 </Pressable>
-                <Pressable disabled={clampedPage >= totalPages} onPress={() => setPage(clampedPage + 1)} style={[s.pagerButton, clampedPage >= totalPages && s.pagerButtonDisabled]}>
+                <Pressable
+                  disabled={clampedPage >= totalPages}
+                  onPress={() => setPage(clampedPage + 1)}
+                  style={[s.pagerButton, clampedPage >= totalPages && s.pagerButtonDisabled]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Next page"
+                  accessibilityState={{ disabled: clampedPage >= totalPages }}
+                >
                   <Text style={s.pagerButtonText}>Next</Text>
                 </Pressable>
               </View>
@@ -74,7 +88,7 @@ const styles = (colors: ColorRamp) =>
     time: { fontSize: 11, color: colors.softZinc },
     pager: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.dividerZinc },
     pagerText: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
-    pagerButton: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: colors.white },
+    pagerButton: { minHeight: 44, justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: colors.white },
     pagerButtonDisabled: { opacity: 0.4 },
     pagerButtonText: { fontSize: 11, fontWeight: "700", color: colors.slateZinc },
   });

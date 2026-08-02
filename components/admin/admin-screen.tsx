@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, Platform, StyleSheet } from "react-native";
+import { View, Text, ScrollView, Pressable, Platform, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -70,7 +70,10 @@ export function AdminScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.paper }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView contentContainerStyle={s.scrollContent}>
         <View>
           <Text style={s.headline}>Admin Control Panel</Text>
@@ -85,15 +88,30 @@ export function AdminScreen() {
               setFilterMode("day");
             }}
             style={[s.filterChip, filterMode === "day" && activeFilterDate === systemDate && s.filterChipActive]}
+            accessibilityRole="button"
+            accessibilityLabel="Today"
+            accessibilityState={{ selected: filterMode === "day" && activeFilterDate === systemDate }}
           >
             <HugeiconsIcon icon={Sun01Icon} size={13} color={filterMode === "day" && activeFilterDate === systemDate ? colors.white : colors.slateZinc} />
             <Text style={[s.filterChipText, filterMode === "day" && activeFilterDate === systemDate && s.filterChipTextActive]}>Today</Text>
           </Pressable>
-          <Pressable onPress={() => setFilterMode("all")} style={[s.filterChip, filterMode === "all" && s.filterChipActive]}>
+          <Pressable
+            onPress={() => setFilterMode("all")}
+            style={[s.filterChip, filterMode === "all" && s.filterChipActive]}
+            accessibilityRole="button"
+            accessibilityLabel="All time"
+            accessibilityState={{ selected: filterMode === "all" }}
+          >
             <HugeiconsIcon icon={GlobeIcon} size={13} color={filterMode === "all" ? colors.white : colors.slateZinc} />
             <Text style={[s.filterChipText, filterMode === "all" && s.filterChipTextActive]}>All Time</Text>
           </Pressable>
-          <Pressable onPress={() => setShowDatePicker(true)} style={[s.filterChip, filterMode === "day" && activeFilterDate !== systemDate && s.filterChipActive]}>
+          <Pressable
+            onPress={() => setShowDatePicker(true)}
+            style={[s.filterChip, filterMode === "day" && activeFilterDate !== systemDate && s.filterChipActive]}
+            accessibilityRole="button"
+            accessibilityLabel={activeFilterDate === systemDate ? "Pick date" : `Filter by ${activeFilterDate}`}
+            accessibilityState={{ selected: filterMode === "day" && activeFilterDate !== systemDate }}
+          >
             <HugeiconsIcon icon={Calendar01Icon} size={13} color={filterMode === "day" && activeFilterDate !== systemDate ? colors.white : colors.slateZinc} />
             <Text style={[s.filterChipText, filterMode === "day" && activeFilterDate !== systemDate && s.filterChipTextActive]}>{activeFilterDate === systemDate ? "Pick date" : activeFilterDate}</Text>
           </Pressable>
@@ -116,7 +134,12 @@ export function AdminScreen() {
 
         <AnalyticsPanel dayOrders={dayOrders} floors={floors} drinks={drinks} avgRating={avgRating} totalReviews={dayReviews.length} brewers={brewers} />
 
-        <Pressable onPress={() => router.push("/admin-feedback")} style={s.feedbackLink}>
+        <Pressable
+          onPress={() => router.push("/admin-feedback")}
+          style={s.feedbackLink}
+          accessibilityRole="button"
+          accessibilityLabel="View all feedback"
+        >
           <Text style={s.feedbackLinkText}>View All Feedback →</Text>
         </Pressable>
 
@@ -157,7 +180,7 @@ export function AdminScreen() {
 
         <OrderHistoryPanel orders={dayOrders} getDailyOrderNumber={getDailyOrderNumber} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -166,13 +189,13 @@ const styles = (colors: ColorRamp) =>
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
     headline: { fontSize: 24, fontWeight: "800", letterSpacing: -0.3, color: colors.ink },
     subheadline: { fontSize: 12, color: colors.softZinc, marginTop: 2 },
-    filterLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.softZinc, marginTop: -4 },
+    filterLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.softZinc, marginTop: -4 },
     filterRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
     filterChip: { flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, backgroundColor: colors.white },
     filterChipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     filterChipText: { fontSize: 11, fontWeight: "700", color: colors.slateZinc },
     filterChipTextActive: { color: colors.white },
-    feedbackLink: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.dividerZinc, borderRadius: 10, padding: 14, alignItems: "center" },
+    feedbackLink: { minHeight: 44, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.dividerZinc, borderRadius: 10, padding: 14, alignItems: "center", justifyContent: "center" },
     feedbackLinkText: { fontSize: 13, fontWeight: "700", color: colors.ink },
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },

@@ -32,6 +32,9 @@ export function OrderStatusSection({
         style={s.header}
         onPress={collapsible ? () => setCollapsed((c) => !c) : undefined}
         disabled={!collapsible}
+        accessibilityRole={collapsible ? "button" : undefined}
+        accessibilityLabel={collapsible ? `${title}, ${count} orders` : undefined}
+        accessibilityState={collapsible ? { expanded: !collapsed } : undefined}
       >
         <Text style={s.title}>{title}</Text>
         <View style={s.countPill}>

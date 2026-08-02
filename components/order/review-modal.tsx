@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, Modal, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, Modal, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   CheckmarkCircle02Icon,
@@ -42,7 +42,10 @@ export function ReviewModal({
 
   return (
     <Modal visible transparent animationType="fade">
-      <View style={s.overlay}>
+      <KeyboardAvoidingView
+        style={s.overlay}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={s.card}>
           <View style={{ alignItems: "center" }}>
             <HugeiconsIcon icon={CheckmarkCircle02Icon} size={40} color={colors.ink} />
@@ -62,6 +65,9 @@ export function ReviewModal({
                   key={r.value}
                   onPress={() => setRating(r.value)}
                   style={[s.reactionChip, selected && s.reactionChipActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel={r.label}
+                  accessibilityState={{ selected }}
                 >
                   <HugeiconsIcon icon={r.icon} size={22} color={selected ? colors.white : colors.slateZinc} />
                   <Text style={[s.reactionLabel, { color: selected ? colors.white : colors.slateZinc }]}>{r.label}</Text>
@@ -79,21 +85,22 @@ export function ReviewModal({
             numberOfLines={3}
             placeholder="e.g. Perfectly brewed! Thank you!"
             placeholderTextColor={colors.softZinc}
+            accessibilityLabel="Review comments"
           />
 
           <View style={s.actions}>
             {!mandatory && (
-              <Pressable style={s.cancelButton} onPress={onCancel}>
+              <Pressable style={s.cancelButton} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel">
                 <Text style={s.cancelText}>Cancel</Text>
               </Pressable>
             )}
-            <Pressable style={s.submitButton} onPress={() => onSubmit(rating, comments)}>
+            <Pressable style={s.submitButton} onPress={() => onSubmit(rating, comments)} accessibilityRole="button" accessibilityLabel="Confirm and submit review">
               <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color={colors.white} />
               <Text style={s.submitText}>Confirm & Submit Review</Text>
             </Pressable>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -107,13 +114,13 @@ const styles = (colors: ColorRamp) =>
     subtitle: { fontSize: 12, color: colors.quietZinc, marginTop: 6, textAlign: "center" },
     label: { fontSize: 11, fontWeight: "700", letterSpacing: 0.9, textTransform: "uppercase", color: colors.quietZinc, marginTop: 8 },
     reactionRow: { flexDirection: "row", gap: 8, marginTop: 8 },
-    reactionChip: { flex: 1, alignItems: "center", padding: 8, borderRadius: 12, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
+    reactionChip: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", padding: 8, borderRadius: 12, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
     reactionChipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    reactionLabel: { fontSize: 9, fontWeight: "700", marginTop: 4 },
+    reactionLabel: { fontSize: 11, fontWeight: "700", marginTop: 4 },
     textArea: { marginTop: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, padding: 10, fontSize: 13, color: colors.ink, backgroundColor: colors.white, textAlignVertical: "top" },
     actions: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 12 },
-    cancelButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
+    cancelButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
     cancelText: { fontSize: 12, fontWeight: "700", color: colors.slateZinc },
-    submitButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: colors.ink },
+    submitButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: colors.ink },
     submitText: { fontSize: 12, fontWeight: "700", color: colors.white },
   });

@@ -18,7 +18,7 @@ const styles = (colors: ColorRamp) =>
     tile: { flexBasis: "48%", flexGrow: 1, borderRadius: 10, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 12 },
     tileInk: { backgroundColor: colors.ink, borderColor: colors.ink },
     tileOutline: { borderWidth: 2, borderColor: colors.ink },
-    label: { fontSize: 10, fontWeight: "600", color: colors.softZinc },
+    label: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
     labelInk: { color: colors.dividerZinc },
     value: { fontSize: 18, fontWeight: "800", color: colors.ink, marginTop: 3 },
     valueInk: { color: colors.white },

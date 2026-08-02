@@ -2,7 +2,7 @@ import "react-native-url-polyfill/auto";
 import { useEffect } from "react";
 import { useRouter, useSegments, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, useColorScheme } from "react-native";
 import { RefreshProvider, useRefresh } from "@/context/RefreshContext";
 import { resolveRoute } from "@/lib/session-router";
 import { Skeleton } from "@/components/skeleton";
@@ -64,12 +64,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  const scheme = useColorScheme();
   return (
     <RefreshProvider>
       <AuthGate>
         <Stack screenOptions={{ headerShown: false }} />
       </AuthGate>
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
     </RefreshProvider>
   );
 }

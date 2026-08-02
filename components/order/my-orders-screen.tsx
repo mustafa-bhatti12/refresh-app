@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, Alert, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { useColors } from "@/constants/use-colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -55,16 +55,16 @@ export function MyOrdersScreen() {
   if (dataLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.paper }}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.scrollContent}>
           <CardSkeleton lines={4} />
-        </ScrollView>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.screenPadding}>
         <MyOrdersPanel
           orders={myOrders}
           reviewedOrderIds={reviewedOrderIds}
@@ -76,11 +76,12 @@ export function MyOrdersScreen() {
           onSaveEdit={updateOrderDetails}
           onRateOrder={setReviewOrderId}
         />
-      </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
+  scrollContent: { padding: 16 },
+  screenPadding: { flex: 1, padding: 16 },
 });

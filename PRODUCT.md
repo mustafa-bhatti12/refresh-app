@@ -2,7 +2,7 @@
 
 ## Platform
 
-iOS + Android (Expo/React Native). Native companion to `refresh-web`, same backend, same users — not a separate product.
+adaptive
 
 ## Users
 

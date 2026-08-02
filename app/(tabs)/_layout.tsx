@@ -2,11 +2,13 @@ import { Tabs } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Coffee01Icon, ReceiptTextIcon, Queue01Icon, ShieldUserIcon, User03Icon } from "@hugeicons/core-free-icons";
 import { AppHeader } from "@/components/app-header";
+import { HapticTab } from "@/components/haptic-tab";
 import { ReviewModal } from "@/components/order/review-modal";
 import { useRefresh } from "@/context/RefreshContext";
-import { lightColors } from "@/constants/colors";
+import { useColors } from "@/constants/use-colors";
 
 export default function TabsLayout() {
+  const colors = useColors();
   const { currentUser, activeReviewOrder, isMandatoryReview, setReviewOrderId, submitReview, getDailyOrderNumber } = useRefresh();
   const isAdmin = currentUser?.role === "Admin";
   const isBrewer = currentUser?.role === "Brewer";
@@ -16,8 +18,9 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           header: () => <AppHeader />,
-          tabBarActiveTintColor: lightColors.ink,
-          tabBarInactiveTintColor: lightColors.softZinc,
+          tabBarButton: HapticTab,
+          tabBarActiveTintColor: colors.ink,
+          tabBarInactiveTintColor: colors.softZinc,
         }}
       >
         <Tabs.Screen

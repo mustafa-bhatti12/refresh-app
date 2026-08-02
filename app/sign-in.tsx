@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { View, Text, Pressable, Alert, StyleSheet, Image } from "react-native";
+import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { lightColors } from "@/constants/colors";
+import { useColors } from "@/constants/use-colors";
+import type { ColorRamp } from "@/constants/colors";
 import { signInWithGoogle } from "@/lib/google-signin";
 
 function GoogleLogo({ size = 18 }: { size?: number }) {
@@ -16,8 +19,9 @@ function GoogleLogo({ size = 18 }: { size?: number }) {
 }
 
 export default function SignInScreen() {
-  const colors = lightColors;
+  const colors = useColors();
   const s = styles(colors);
+  const insets = useSafeAreaInsets();
   const [signingIn, setSigningIn] = useState(false);
 
   const handleSignIn = async () => {
@@ -32,12 +36,19 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={s.container}>
-      <Image source={require("@/assets/images/logo.png")} style={s.logo} resizeMode="contain" />
+    <View style={[s.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
+      <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" />
       <Text style={s.title}>Welcome to Refresh</Text>
       <Text style={s.subtitle}>Sign in with your work Google account to get started.</Text>
 
-      <Pressable style={s.button} onPress={handleSignIn} disabled={signingIn}>
+      <Pressable
+        style={[s.button, signingIn && s.buttonDisabled]}
+        onPress={handleSignIn}
+        disabled={signingIn}
+        accessibilityRole="button"
+        accessibilityLabel="Continue with Google"
+        accessibilityState={{ disabled: signingIn, busy: signingIn }}
+      >
         {!signingIn && <GoogleLogo size={18} />}
         <Text style={s.buttonText}>{signingIn ? "Signing in…" : "Continue with Google"}</Text>
       </Pressable>
@@ -45,12 +56,13 @@ export default function SignInScreen() {
   );
 }
 
-const styles = (colors: typeof lightColors) =>
+const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", padding: 24 },
     logo: { width: 72, height: 72 },
     title: { fontSize: 26, fontWeight: "800", letterSpacing: -0.3, color: colors.ink, marginTop: 20, textAlign: "center" },
     subtitle: { fontSize: 14, color: colors.quietZinc, textAlign: "center", marginTop: 8, lineHeight: 20, paddingHorizontal: 12 },
-    button: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.ink, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 24, marginTop: 40, width: "100%" },
+    button: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.ink, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 24, marginTop: 40, width: "100%" },
+    buttonDisabled: { opacity: 0.6 },
     buttonText: { color: colors.ink, fontWeight: "700", fontSize: 15 },
   });

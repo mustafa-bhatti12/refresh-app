@@ -24,11 +24,25 @@ export function QuickActions({
     <View style={s.card}>
       <Text style={s.title}>Quick Actions</Text>
       <View style={{ gap: 8 }}>
-        <Pressable disabled={isTogglingPause} onPress={onTogglePause} style={s.actionRow}>
+        <Pressable
+          disabled={isTogglingPause}
+          onPress={onTogglePause}
+          style={s.actionRow}
+          accessibilityRole="button"
+          accessibilityLabel={isPaused ? "Resume orders" : "Pause orders"}
+          accessibilityState={{ disabled: isTogglingPause, busy: isTogglingPause }}
+        >
           <HugeiconsIcon icon={isPaused ? PlayIcon : PauseIcon} size={16} color={colors.slateZinc} />
           <Text style={s.actionText}>{isTogglingPause ? "…" : isPaused ? "Resume Orders" : "Pause Orders"}</Text>
         </Pressable>
-        <Pressable disabled={isRefreshing} onPress={onRefresh} style={s.actionRow}>
+        <Pressable
+          disabled={isRefreshing}
+          onPress={onRefresh}
+          style={s.actionRow}
+          accessibilityRole="button"
+          accessibilityLabel="Refresh queue"
+          accessibilityState={{ disabled: isRefreshing, busy: isRefreshing }}
+        >
           <HugeiconsIcon icon={Refresh01Icon} size={16} color={colors.slateZinc} />
           <Text style={s.actionText}>{isRefreshing ? "Refreshing…" : "Refresh Queue"}</Text>
         </Pressable>
@@ -41,6 +55,6 @@ const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 12 },
-    actionRow: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: colors.white },
+    actionRow: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: colors.white },
     actionText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
   });

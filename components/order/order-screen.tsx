@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, Alert, StyleSheet } from "react-native";
+import { View, Text, ScrollView, Alert, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
@@ -95,7 +95,10 @@ export function OrderScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.paper }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView contentContainerStyle={s.scrollContent}>
         <View style={s.headerRow}>
           <Text style={s.headline}>Place an Order</Text>
@@ -118,7 +121,7 @@ export function OrderScreen() {
           <Text style={s.toastText}>{toast}</Text>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

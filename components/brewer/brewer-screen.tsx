@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, Alert, StyleSheet, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet, FlatList, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -158,18 +158,24 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   const ordersAhead = pendingOrders.length + inProgressOrders.length;
   const estWaitMins = brewerStats.avgOrderMins !== null && ordersAhead > 0 ? brewerStats.avgOrderMins * ordersAhead : null;
 
-  const renderRows = (list: Order[]) =>
-    list.map((order, idx) => (
-      <View key={order.id} style={idx === list.length - 1 ? { borderBottomWidth: 0 } : undefined}>
-        <OrderRow
-          order={order}
-          dailyNumber={getDailyOrderNumber(order.id, order.createdAt)}
-          isActioning={actioningOrderId === order.id}
-          onPrimaryAction={() => handlePrimaryAction(order)}
-          onCancel={() => handleCancel(order)}
-        />
-      </View>
-    ));
+  const renderRows = (list: Order[]) => (
+    <FlatList
+      data={list}
+      keyExtractor={(order) => order.id}
+      scrollEnabled={false}
+      renderItem={({ item: order, index }) => (
+        <View style={index === list.length - 1 ? { borderBottomWidth: 0 } : undefined}>
+          <OrderRow
+            order={order}
+            dailyNumber={getDailyOrderNumber(order.id, order.createdAt)}
+            isActioning={actioningOrderId === order.id}
+            onPrimaryAction={() => handlePrimaryAction(order)}
+            onCancel={() => handleCancel(order)}
+          />
+        </View>
+      )}
+    />
+  );
 
   const onSectionLayout = (key: "inProgress" | "ready" | "completed") => (e: LayoutChangeEvent) => {
     sectionY.current[key] = e.nativeEvent.layout.y;
@@ -198,7 +204,14 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
               <HugeiconsIcon icon={PauseIcon} size={16} color={colors.slateZinc} />
               <Text style={s.pauseBannerText}>Orders Paused — employees can&apos;t order right now.</Text>
             </View>
-            <Pressable disabled={pauseToggling} onPress={handleTogglePause} style={s.resumeButton}>
+            <Pressable
+              disabled={pauseToggling}
+              onPress={handleTogglePause}
+              style={s.resumeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Resume orders"
+              accessibilityState={{ disabled: pauseToggling, busy: pauseToggling }}
+            >
               <Text style={s.resumeButtonText}>{pauseToggling ? "…" : "Resume"}</Text>
             </Pressable>
           </View>
@@ -210,7 +223,13 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
               <HugeiconsIcon icon={Notification01Icon} size={16} color={colors.white} />
               <Text style={s.newOrderText}>New order received</Text>
             </View>
-            <Pressable onPress={() => setNewOrderAlert(false)}>
+            <Pressable
+              onPress={() => setNewOrderAlert(false)}
+              style={s.dismissButton}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss notification"
+              hitSlop={8}
+            >
               <Text style={s.dismissText}>Dismiss</Text>
             </Pressable>
           </View>
@@ -236,12 +255,17 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
 
         <View onLayout={onSectionLayout("completed")}>
           <OrderStatusSection title="Completed" subtitle="Recently completed orders today." count={completedOrders.length} emptyMessage="Nothing completed yet today." isEmpty={completedList.length === 0} collapsible>
-            {completedList.map((order, idx) => (
-              <View key={order.id} style={idx === completedList.length - 1 ? { borderBottomWidth: 0 } : undefined}>
-                <CompletedOrderRow order={order} dailyNumber={getDailyOrderNumber(order.id, order.createdAt)} />
-              </View>
-            ))}
-            {hiddenCompletedCount > 0 && <Text style={s.hiddenCount}>+ {hiddenCompletedCount} more completed today</Text>}
+            <FlatList
+              data={completedList}
+              keyExtractor={(order) => order.id}
+              scrollEnabled={false}
+              renderItem={({ item: order, index }) => (
+                <View style={index === completedList.length - 1 ? { borderBottomWidth: 0 } : undefined}>
+                  <CompletedOrderRow order={order} dailyNumber={getDailyOrderNumber(order.id, order.createdAt)} />
+                </View>
+              )}
+              ListFooterComponent={hiddenCompletedCount > 0 ? <Text style={s.hiddenCount}>+ {hiddenCompletedCount} more completed today</Text> : null}
+            />
           </OrderStatusSection>
         </View>
 
@@ -254,13 +278,25 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.key;
             return (
-              <Pressable key={item.key} style={s.navItem} onPress={() => scrollToSection(item.key)}>
+              <Pressable
+                key={item.key}
+                style={s.navItem}
+                onPress={() => scrollToSection(item.key)}
+                accessibilityRole="tab"
+                accessibilityLabel={item.label}
+                accessibilityState={{ selected: isActive }}
+              >
                 <HugeiconsIcon icon={item.icon} size={20} color={isActive ? colors.ink : colors.softZinc} strokeWidth={isActive ? 2 : 1.5} />
                 <Text style={[s.navLabel, isActive && s.navLabelActive]}>{item.label}</Text>
               </Pressable>
             );
           })}
-          <Pressable style={s.navItem} onPress={() => router.push("/brewer-profile")}>
+          <Pressable
+            style={s.navItem}
+            onPress={() => router.push("/brewer-profile")}
+            accessibilityRole="tab"
+            accessibilityLabel="Profile"
+          >
             <HugeiconsIcon icon={User03Icon} size={20} color={colors.softZinc} strokeWidth={1.5} />
             <Text style={s.navLabel}>Profile</Text>
           </Pressable>
@@ -276,10 +312,11 @@ const styles = (colors: ColorRamp) =>
     headline: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3, color: colors.ink },
     pauseBanner: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.surfaceZinc, borderRadius: 10, padding: 12 },
     pauseBannerText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc, flex: 1 },
-    resumeButton: { backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+    resumeButton: { minHeight: 44, justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
     resumeButtonText: { color: colors.white, fontSize: 11, fontWeight: "700" },
     newOrderBanner: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.ink, borderRadius: 10, padding: 12 },
     newOrderText: { fontSize: 12, fontWeight: "700", color: colors.white, flex: 1 },
+    dismissButton: { minHeight: 44, minWidth: 44, alignItems: "center", justifyContent: "center" },
     dismissText: { fontSize: 11, fontWeight: "700", color: colors.white, opacity: 0.8 },
     hiddenCount: { fontSize: 11, fontWeight: "600", color: colors.softZinc, paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.dividerZinc },
     navBar: {
@@ -289,7 +326,7 @@ const styles = (colors: ColorRamp) =>
       backgroundColor: colors.paper,
       paddingTop: 8,
     },
-    navItem: { flex: 1, alignItems: "center", gap: 3 },
+    navItem: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", gap: 3 },
     navLabel: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
     navLabelActive: { color: colors.ink, fontWeight: "700" },
   });

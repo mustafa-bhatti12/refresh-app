@@ -31,7 +31,13 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView contentContainerStyle={[s.scrollContent, standalone && { paddingTop: insets.top + 8 }]}>
         {standalone && (
-          <Pressable onPress={() => router.back()} style={s.backButton}>
+          <Pressable
+            onPress={() => router.back()}
+            style={s.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            hitSlop={8}
+          >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={colors.ink} strokeWidth={2} />
           </Pressable>
         )}
@@ -54,7 +60,12 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
 
         {isBrewer && <BrewerStats {...brewerStats} />}
 
-        <Pressable onPress={() => logout()} style={s.logoutButton}>
+        <Pressable
+          onPress={() => logout()}
+          style={s.logoutButton}
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
+        >
           <Text style={s.logoutText}>Log Out</Text>
         </Pressable>
       </ScrollView>
@@ -65,7 +76,7 @@ export function ProfileScreen({ standalone }: { standalone?: boolean } = {}) {
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     scrollContent: { padding: 16, gap: 16, paddingBottom: 40 },
-    backButton: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
+    backButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
     card: { alignItems: "center", borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 24, gap: 6 },
     avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center", marginBottom: 8 },
     avatarText: { color: colors.white, fontSize: 22, fontWeight: "700" },
@@ -76,6 +87,6 @@ const styles = (colors: ColorRamp) =>
     detailRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.dividerZinc },
     detailLabel: { fontSize: 13, color: colors.softZinc },
     detailValue: { fontSize: 13, fontWeight: "700", color: colors.ink },
-    logoutButton: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 10, paddingVertical: 14, alignItems: "center", backgroundColor: colors.white },
+    logoutButton: { minHeight: 44, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 10, paddingVertical: 14, alignItems: "center", justifyContent: "center", backgroundColor: colors.white },
     logoutText: { fontSize: 14, fontWeight: "700", color: colors.slateZinc },
   });

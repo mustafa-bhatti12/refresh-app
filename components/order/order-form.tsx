@@ -91,7 +91,14 @@ export function OrderForm({
           {floors.map((f) => {
             const selected = floor === f;
             return (
-              <Pressable key={f} onPress={() => setFloor(f)} style={[s.floorChip, selected && s.chipActive]}>
+              <Pressable
+                key={f}
+                onPress={() => setFloor(f)}
+                style={[s.floorChip, selected && s.chipActive]}
+                accessibilityRole="button"
+                accessibilityLabel={`Floor ${f}`}
+                accessibilityState={{ selected }}
+              >
                 <Text style={[s.floorChipText, selected && s.chipTextActive]}>{f}</Text>
               </Pressable>
             );
@@ -117,6 +124,9 @@ export function OrderForm({
                 disabled={!bev.enabled}
                 onPress={() => setDrink(bev.name)}
                 style={[s.drinkTile, !bev.enabled && s.drinkTileDisabled, selected && bev.enabled && s.drinkTileSelected]}
+                accessibilityRole="button"
+                accessibilityLabel={bev.enabled ? bev.name : `${bev.name}, unavailable`}
+                accessibilityState={{ selected: selected && bev.enabled, disabled: !bev.enabled }}
               >
                 {selected && bev.enabled && (
                   <View style={s.drinkCheck}>
@@ -145,7 +155,14 @@ export function OrderForm({
           {sugarOptions.map((opt) => {
             const selected = sugar === opt;
             return (
-              <Pressable key={opt} onPress={() => setSugar(opt)} style={[s.prefChip, selected && s.chipActive]}>
+              <Pressable
+                key={opt}
+                onPress={() => setSugar(opt)}
+                style={[s.prefChip, selected && s.chipActive]}
+                accessibilityRole="button"
+                accessibilityLabel={opt === "Sugar" ? "With Sugar" : "Sugar-Free"}
+                accessibilityState={{ selected }}
+              >
                 <HugeiconsIcon icon={opt === "Sugar" ? CheckmarkCircle01Icon : Cancel01Icon} size={15} color={selected ? colors.white : colors.slateZinc} />
                 <Text style={[s.prefChipText, selected && s.chipTextActive]}>{opt === "Sugar" ? "With Sugar" : "Sugar-Free"}</Text>
               </Pressable>
@@ -162,7 +179,13 @@ export function OrderForm({
           </View>
           <Text style={s.sectionTitle}>Anything else?</Text>
         </View>
-        <Pressable onPress={() => setShowNote((v) => !v)} style={s.noteToggle}>
+        <Pressable
+          onPress={() => setShowNote((v) => !v)}
+          style={s.noteToggle}
+          accessibilityRole="button"
+          accessibilityLabel={showNote || note ? "Note" : "Add a note"}
+          accessibilityState={{ expanded: showNote }}
+        >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <HugeiconsIcon icon={Note01Icon} size={16} color={colors.quietZinc} />
             <Text style={s.noteToggleText}>{showNote || note ? "Note" : "Add a note"}</Text>
@@ -178,6 +201,7 @@ export function OrderForm({
             placeholder="e.g. Less sugar, extra hot, etc."
             placeholderTextColor={colors.softZinc}
             style={s.noteInput}
+            accessibilityLabel="Order note"
           />
         )}
       </View>
@@ -209,7 +233,14 @@ export function OrderForm({
           <Text style={s.blockedTextSoft}>3-Hour Cooldown: Please wait {formatCooldown(cooldownRemaining)} before placing your next order.</Text>
         </View>
       ) : (
-        <Pressable disabled={!floor || !drink || !sugar || submitting} onPress={handleSubmit} style={[s.submitButton, (!floor || !drink || !sugar || submitting) && s.submitButtonDisabled]}>
+        <Pressable
+          disabled={!floor || !drink || !sugar || submitting}
+          onPress={handleSubmit}
+          style={[s.submitButton, (!floor || !drink || !sugar || submitting) && s.submitButtonDisabled]}
+          accessibilityRole="button"
+          accessibilityLabel="Place order"
+          accessibilityState={{ disabled: !floor || !drink || !sugar || submitting, busy: submitting }}
+        >
           <HugeiconsIcon icon={SendingOrderIcon} size={16} color={colors.white} />
           <Text style={s.submitText}>{submitting ? "Placing Order…" : "Place Order"}</Text>
         </Pressable>
@@ -224,13 +255,13 @@ const styles = (colors: ColorRamp) =>
     section: {},
     sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
     stepBadge: { width: 22, height: 22, borderRadius: 9999, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
-    stepBadgeText: { fontSize: 10, fontWeight: "700", color: colors.white },
+    stepBadgeText: { fontSize: 11, fontWeight: "700", color: colors.white },
     sectionTitle: { fontSize: 13, fontWeight: "700", color: colors.ink },
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     chipRow2col: { flexDirection: "row", gap: 10 },
-    floorChip: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: colors.white },
+    floorChip: { minHeight: 44, justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: colors.white },
     floorChipText: { fontSize: 13, fontWeight: "600", color: colors.slateZinc },
-    prefChip: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, backgroundColor: colors.white },
+    prefChip: { minHeight: 44, flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, backgroundColor: colors.white },
     prefChipText: { fontSize: 13, fontWeight: "500", color: colors.slateZinc },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipTextActive: { color: colors.white },
@@ -241,12 +272,12 @@ const styles = (colors: ColorRamp) =>
     drinkTileDisabled: { opacity: 0.5, borderColor: colors.surfaceZinc },
     drinkCheck: { position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: 9999, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
     drinkName: { fontSize: 11, fontWeight: "600", color: colors.slateZinc, textAlign: "center" },
-    drinkUnavailable: { fontSize: 8, fontWeight: "700", textTransform: "uppercase", color: colors.softZinc },
-    noteToggle: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: colors.white },
+    drinkUnavailable: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: colors.softZinc },
+    noteToggle: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: colors.white },
     noteToggleText: { fontSize: 13, fontWeight: "500", color: colors.quietZinc },
     noteInput: { marginTop: 8, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, padding: 10, fontSize: 13, color: colors.ink, backgroundColor: colors.white, textAlignVertical: "top" },
     summary: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
-    submitButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 14 },
+    submitButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 14 },
     submitButtonDisabled: { opacity: 0.5 },
     submitText: { fontSize: 13, fontWeight: "700", color: colors.white },
     blockedBox: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.white, borderWidth: 2, borderColor: colors.ink, borderRadius: 8, padding: 14 },

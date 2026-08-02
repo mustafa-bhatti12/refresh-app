@@ -35,7 +35,7 @@ function StatCell({ label, value, colors }: { label: string; value: string; colo
   return (
     <View style={{ flex: 1 }}>
       <Text style={{ fontSize: 22, fontWeight: "800", color: colors.ink }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: "600", color: colors.softZinc, marginTop: 2 }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: "600", color: colors.softZinc, marginTop: 2 }}>{label}</Text>
     </View>
   );
 }

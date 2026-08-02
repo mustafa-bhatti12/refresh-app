@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, Platform, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, Switch, Platform, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Clock01Icon, LockIcon, SquareUnlock01Icon, ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 
@@ -44,7 +44,12 @@ function TimeField({ label, value, onChange }: { label: string; value: string; o
   return (
     <View style={{ flex: 1 }}>
       <Text style={s.fieldLabel}>{label}</Text>
-      <Pressable onPress={() => setShowPicker(true)} style={s.timeButton}>
+      <Pressable
+        onPress={() => setShowPicker(true)}
+        style={s.timeButton}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} time, ${value || "not set"}`}
+      >
         <Text style={s.timeButtonText}>{value || "--:--"}</Text>
       </Pressable>
       {showPicker && (
@@ -70,7 +75,14 @@ function DayPicker({ days, onToggle }: { days: number[]; onToggle: (day: number)
       {DAY_LABELS.map((day) => {
         const active = days.includes(day.value);
         return (
-          <Pressable key={day.value} onPress={() => onToggle(day.value)} style={[s.dayChip, active && s.dayChipActive]}>
+          <Pressable
+            key={day.value}
+            onPress={() => onToggle(day.value)}
+            style={[s.dayChip, active && s.dayChipActive]}
+            accessibilityRole="button"
+            accessibilityLabel={day.label}
+            accessibilityState={{ selected: active }}
+          >
             <Text style={[s.dayChipText, active && s.dayChipTextActive]}>{day.label}</Text>
           </Pressable>
         );
@@ -139,7 +151,13 @@ export function ServiceHoursPanel({
 
   return (
     <View style={s.card}>
-      <Pressable style={s.headerRow} onPress={() => setOpen((v) => !v)}>
+      <Pressable
+        style={s.headerRow}
+        onPress={() => setOpen((v) => !v)}
+        accessibilityRole="button"
+        accessibilityLabel="Service Availability"
+        accessibilityState={{ expanded: open }}
+      >
         <View style={{ flex: 1 }}>
           <Text style={s.title}>Service Availability</Text>
           <Text style={s.headerMeta}>{serviceHours.length} slot{serviceHours.length !== 1 ? "s" : ""}{cooldownLimitEnabled ? " · cooldown on" : ""}</Text>
@@ -159,17 +177,17 @@ export function ServiceHoursPanel({
             <View key={slot.id} style={s.slotRow}>
               {isEditing ? (
                 <View style={{ flex: 1, gap: 8 }}>
-                  <TextInput style={s.input} value={editLabel} onChangeText={setEditLabel} placeholder="Slot label" placeholderTextColor={colors.softZinc} />
+                  <TextInput style={s.input} value={editLabel} onChangeText={setEditLabel} placeholder="Slot label" placeholderTextColor={colors.softZinc} accessibilityLabel="Slot label" />
                   <View style={{ flexDirection: "row", gap: 8 }}>
                     <TimeField label="Start" value={editStart} onChange={setEditStart} />
                     <TimeField label="End" value={editEnd} onChange={setEditEnd} />
                   </View>
                   <DayPicker days={editDays} onToggle={(d) => setEditDays((prev) => toggleDay(prev, d))} />
                   <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-end" }}>
-                    <Pressable onPress={() => setEditingId(null)} style={s.cancelButton}>
+                    <Pressable onPress={() => setEditingId(null)} style={s.cancelButton} accessibilityRole="button" accessibilityLabel="Cancel edit">
                       <Text style={s.cancelText}>Cancel</Text>
                     </Pressable>
-                    <Pressable onPress={saveEdit} style={s.saveButton}>
+                    <Pressable onPress={saveEdit} style={s.saveButton} accessibilityRole="button" accessibilityLabel="Save slot">
                       <Text style={s.saveText}>Save</Text>
                     </Pressable>
                   </View>
@@ -182,7 +200,7 @@ export function ServiceHoursPanel({
                     <Text style={s.slotDays}>{formatDays(slot.days_of_week)}</Text>
                   </View>
                   <View style={{ flexDirection: "row", gap: 12 }}>
-                    <Pressable onPress={() => startEdit(slot)}>
+                    <Pressable onPress={() => startEdit(slot)} style={s.smallTapTarget} accessibilityRole="button" accessibilityLabel={`Edit ${slot.label}`} hitSlop={8}>
                       <Text style={s.editText}>Edit</Text>
                     </Pressable>
                     <Pressable
@@ -195,6 +213,11 @@ export function ServiceHoursPanel({
                           setDeletingId(null);
                         }
                       }}
+                      style={s.smallTapTarget}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Delete ${slot.label}`}
+                      accessibilityState={{ disabled: deletingId === slot.id, busy: deletingId === slot.id }}
+                      hitSlop={8}
                     >
                       <Text style={s.deleteText}>{deletingId === slot.id ? "Deleting…" : "Delete"}</Text>
                     </Pressable>
@@ -207,38 +230,42 @@ export function ServiceHoursPanel({
       )}
 
       <View style={s.addForm}>
-        <TextInput style={s.input} value={newLabel} onChangeText={setNewLabel} placeholder="Slot label (e.g. Afternoon Tea)" placeholderTextColor={colors.softZinc} />
+        <TextInput style={s.input} value={newLabel} onChangeText={setNewLabel} placeholder="Slot label (e.g. Afternoon Tea)" placeholderTextColor={colors.softZinc} accessibilityLabel="New slot label" />
         <View style={{ flexDirection: "row", gap: 8 }}>
           <TimeField label="Start" value={newStart} onChange={setNewStart} />
           <TimeField label="End" value={newEnd} onChange={setNewEnd} />
         </View>
         <DayPicker days={newDays} onToggle={(d) => setNewDays((prev) => toggleDay(prev, d))} />
-        <Pressable onPress={handleAdd} style={s.addButton}>
+        <Pressable onPress={handleAdd} style={s.addButton} accessibilityRole="button" accessibilityLabel="Add slot">
           <HugeiconsIcon icon={Clock01Icon} size={14} color={colors.white} />
           <Text style={s.addButtonText}>Add Slot</Text>
         </Pressable>
       </View>
 
       <View style={s.cooldownSection}>
-        <Text style={s.cooldownTitle}>Ordering Limitations</Text>
-        <Text style={s.subtitle}>Enforce a 3-hour cooldown between orders for employees.</Text>
-        <Pressable
-          disabled={togglingCooldown}
-          onPress={async () => {
-            setTogglingCooldown(true);
-            try {
-              await onToggleCooldown(!cooldownLimitEnabled);
-            } finally {
-              setTogglingCooldown(false);
-            }
-          }}
-          style={[s.cooldownButton, cooldownLimitEnabled ? s.cooldownButtonOutline : s.cooldownButtonInk]}
-        >
-          <HugeiconsIcon icon={cooldownLimitEnabled ? SquareUnlock01Icon : LockIcon} size={14} color={cooldownLimitEnabled ? colors.ink : colors.white} />
-          <Text style={[s.cooldownButtonText, { color: cooldownLimitEnabled ? colors.ink : colors.white }]}>
-            {togglingCooldown ? "Updating…" : cooldownLimitEnabled ? "Remove 3-Hour Limit" : "Add 3-Hour Limit"}
-          </Text>
-        </Pressable>
+        <View style={s.cooldownRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.cooldownTitle}>Ordering Limitations</Text>
+            <Text style={s.subtitle}>Enforce a 3-hour cooldown between orders for employees.</Text>
+          </View>
+          <Switch
+            disabled={togglingCooldown}
+            value={cooldownLimitEnabled}
+            onValueChange={async (next) => {
+              setTogglingCooldown(true);
+              try {
+                await onToggleCooldown(next);
+              } finally {
+                setTogglingCooldown(false);
+              }
+            }}
+            trackColor={{ false: colors.dividerZinc, true: colors.ink }}
+            thumbColor={colors.white}
+            accessibilityRole="switch"
+            accessibilityLabel="3-hour cooldown"
+            accessibilityState={{ checked: cooldownLimitEnabled, disabled: togglingCooldown }}
+          />
+        </View>
       </View>
       </View>
       )}
@@ -249,7 +276,7 @@ export function ServiceHoursPanel({
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
     card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
-    headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    headerRow: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 10 },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
     headerMeta: { fontSize: 11, color: colors.softZinc, marginTop: 2 },
     body: { marginTop: 12 },
@@ -258,28 +285,26 @@ const styles = (colors: ColorRamp) =>
     slotRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.dividerZinc },
     slotLabel: { fontSize: 13, fontWeight: "700", color: colors.ink },
     slotTime: { fontSize: 11, fontWeight: "600", color: colors.slateZinc, marginTop: 1 },
-    slotDays: { fontSize: 10, color: colors.softZinc, marginTop: 1 },
+    slotDays: { fontSize: 11, color: colors.softZinc, marginTop: 1 },
     editText: { fontSize: 11, fontWeight: "700", color: colors.slateZinc },
     deleteText: { fontSize: 11, fontWeight: "700", color: colors.quietZinc },
     addForm: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.dividerZinc, gap: 8 },
     input: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 12, color: colors.ink, backgroundColor: colors.white },
-    fieldLabel: { fontSize: 9, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase", color: colors.softZinc, marginBottom: 4 },
-    timeButton: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: colors.white },
+    fieldLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase", color: colors.softZinc, marginBottom: 4 },
+    timeButton: { minHeight: 44, justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: colors.white },
     timeButtonText: { fontSize: 13, fontWeight: "700", color: colors.ink },
-    dayChip: { borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: colors.white },
+    dayChip: { minHeight: 36, justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: colors.white },
     dayChipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    dayChipText: { fontSize: 10, fontWeight: "700", color: colors.slateZinc },
+    dayChipText: { fontSize: 11, fontWeight: "700", color: colors.slateZinc },
     dayChipTextActive: { color: colors.white },
-    addButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 10 },
+    addButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 10 },
     addButtonText: { color: colors.white, fontSize: 12, fontWeight: "700" },
-    cancelButton: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
+    cancelButton: { minHeight: 40, justifyContent: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
     cancelText: { fontSize: 11, fontWeight: "600", color: colors.slateZinc },
-    saveButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.ink },
+    saveButton: { minHeight: 40, justifyContent: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.ink },
     saveText: { fontSize: 11, fontWeight: "600", color: colors.white },
     cooldownSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.dividerZinc },
+    cooldownRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     cooldownTitle: { fontSize: 13, fontWeight: "700", color: colors.ink },
-    cooldownButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 8, paddingVertical: 10, borderWidth: 1 },
-    cooldownButtonOutline: { backgroundColor: colors.white, borderColor: colors.ink },
-    cooldownButtonInk: { backgroundColor: colors.ink, borderColor: colors.ink },
-    cooldownButtonText: { fontSize: 12, fontWeight: "700" },
+    smallTapTarget: { minHeight: 44, minWidth: 44, alignItems: "center", justifyContent: "center" },
   });

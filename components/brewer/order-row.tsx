@@ -53,11 +53,26 @@ export function OrderRow({
 
       <View style={{ alignItems: "flex-end", gap: 6 }}>
         {nextLabel && (
-          <Pressable disabled={isActioning} onPress={onPrimaryAction} style={[s.actionButton, isActioning && s.actionButtonDisabled]}>
+          <Pressable
+            disabled={isActioning}
+            onPress={onPrimaryAction}
+            style={[s.actionButton, isActioning && s.actionButtonDisabled]}
+            accessibilityRole="button"
+            accessibilityLabel={nextLabel}
+            accessibilityState={{ disabled: isActioning, busy: isActioning }}
+          >
             <Text style={s.actionButtonText}>{isActioning ? "…" : nextLabel}</Text>
           </Pressable>
         )}
-        <Pressable disabled={isActioning} onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+        <Pressable
+          disabled={isActioning}
+          onPress={onCancel}
+          style={s.notFoundButton}
+          accessibilityRole="button"
+          accessibilityLabel="Mark as not found"
+          accessibilityState={{ disabled: isActioning }}
+          hitSlop={8}
+        >
           <HugeiconsIcon icon={CancelCircleIcon} size={11} color={colors.softZinc} />
           <Text style={s.cancelText}>Not Found</Text>
         </Pressable>
@@ -74,8 +89,9 @@ const styles = (colors: ColorRamp) =>
     meta: { fontSize: 11, color: colors.quietZinc },
     note: { flex: 1, fontSize: 11, color: colors.softZinc, fontStyle: "italic" },
     employeeName: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
-    actionButton: { backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+    actionButton: { minHeight: 44, justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
     actionButtonDisabled: { opacity: 0.6 },
     actionButtonText: { color: colors.white, fontSize: 11, fontWeight: "700" },
-    cancelText: { fontSize: 10, fontWeight: "600", color: colors.softZinc },
+    notFoundButton: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 3 },
+    cancelText: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
   });
