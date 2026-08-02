@@ -242,7 +242,31 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     const bootstrap = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // supabase-js's internal auth lock/token-refresh can get stuck after the app
+      // sits backgrounded for a long time, hanging getSession() forever (mobile apps
+      // background far more often than browser tabs, so this hits harder here).
+      // Race it against a timeout and trust the cache rather than blocking forever.
+      const TIMED_OUT = Symbol("getSession timeout");
+      const result = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<typeof TIMED_OUT>((resolve) =>
+          setTimeout(() => resolve(TIMED_OUT), 3000)
+        ),
+      ]);
+
+      if (result === TIMED_OUT) {
+        const cached = await readAuthCache();
+        if (cached) {
+          const { needsRoleSelection: needsRole = false, ...user } = cached;
+          if (!cancelled) setAuthUser(user, needsRole);
+        } else if (!cancelled) {
+          setAuthUser(null);
+        }
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      const { data: { session } } = result;
       const cached = await readAuthCache();
       if (session?.user && cached?.id === session.user.id) {
         const { needsRoleSelection: needsRole = false, ...user } = cached;
