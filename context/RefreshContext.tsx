@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { AppState } from "react-native";
 import { supabase } from "../lib/supabase";
 import { OFFICE_FLOORS } from "../lib/floors";
 import { signOutGoogle } from "../lib/google-signin";
@@ -531,6 +532,27 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
       supabase.removeChannel(settingsTableChannel);
       supabase.removeChannel(beveragesChannel);
     };
+  }, [currentUser?.id]);
+
+  // Realtime's WebSocket gets suspended by the OS while the app is backgrounded, so any
+  // postgres_changes events broadcast during that window are missed entirely (Supabase
+  // doesn't replay them to a reconnected client) — refetch on foreground to catch up.
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") {
+        supabase.auth.startAutoRefresh();
+        fetchOrders();
+        fetchBrewersList();
+        fetchEmployeesList();
+        fetchServiceHours();
+        fetchCooldownSetting();
+        fetchBeverages();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+    return () => subscription.remove();
   }, [currentUser?.id]);
 
   useEffect(() => {
