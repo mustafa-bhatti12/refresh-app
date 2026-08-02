@@ -37,7 +37,7 @@ export default function SignInScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-      <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" />
+      <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" tintColor={colors.ink} />
       <Text style={s.title}>Welcome to Refresh</Text>
       <Text style={s.subtitle}>Sign in with your work Google account to get started.</Text>
 

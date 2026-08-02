@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.hofglobal.refresh",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png"
+      }
     },
     "android": {
       "package": "com.hofglobal.refresh",
@@ -37,6 +41,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#fafafa",
           "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
             "backgroundColor": "#09090b"
           }
         }

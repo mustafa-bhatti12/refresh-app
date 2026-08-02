@@ -56,11 +56,20 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [loading, currentUser, needsRoleSelection, segments, router]);
 
-  if (loading) {
-    return <AuthLoadingSkeleton />;
-  }
-
-  return <>{children}</>;
+  // The Stack (and the navigation container inside it) must always mount — expo-router
+  // only hides the native splash screen once that container fires onReady, so returning
+  // AuthLoadingSkeleton *instead of* children here left the native splash logo on screen
+  // for the whole auth bootstrap instead of showing this skeleton underneath it.
+  return (
+    <View style={{ flex: 1 }}>
+      {children}
+      {loading && (
+        <View style={StyleSheet.absoluteFill}>
+          <AuthLoadingSkeleton />
+        </View>
+      )}
+    </View>
+  );
 }
 
 export default function RootLayout() {

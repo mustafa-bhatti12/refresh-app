@@ -24,7 +24,7 @@ export function AppHeader() {
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
       <View style={s.brand}>
-        <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" />
+        <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" tintColor={colors.ink} />
         <Text style={s.title}>Refresh</Text>
       </View>
       <View style={s.actions}>
