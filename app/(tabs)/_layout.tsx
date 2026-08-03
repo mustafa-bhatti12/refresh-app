@@ -21,6 +21,7 @@ export default function TabsLayout() {
           tabBarButton: HapticTab,
           tabBarActiveTintColor: colors.ink,
           tabBarInactiveTintColor: colors.softZinc,
+          tabBarStyle: { backgroundColor: colors.paper, borderTopColor: colors.hairlineZinc },
         }}
       >
         <Tabs.Screen
