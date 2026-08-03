@@ -164,15 +164,14 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
       keyExtractor={(order) => order.id}
       scrollEnabled={false}
       renderItem={({ item: order, index }) => (
-        <View style={index === list.length - 1 ? { borderBottomWidth: 0 } : undefined}>
-          <OrderRow
-            order={order}
-            dailyNumber={getDailyOrderNumber(order.id, order.createdAt)}
-            isActioning={actioningOrderId === order.id}
-            onPrimaryAction={() => handlePrimaryAction(order)}
-            onCancel={() => handleCancel(order)}
-          />
-        </View>
+        <OrderRow
+          order={order}
+          dailyNumber={getDailyOrderNumber(order.id, order.createdAt)}
+          isActioning={actioningOrderId === order.id}
+          onPrimaryAction={() => handlePrimaryAction(order)}
+          onCancel={() => handleCancel(order)}
+          isLast={index === list.length - 1}
+        />
       )}
     />
   );
@@ -228,7 +227,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
               style={s.dismissButton}
               accessibilityRole="button"
               accessibilityLabel="Dismiss notification"
-              hitSlop={8}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Text style={s.dismissText}>Dismiss</Text>
             </Pressable>
@@ -308,15 +307,15 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    scrollContent: { padding: 16, gap: 16, paddingBottom: 100 },
-    headline: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3, color: colors.ink },
-    pauseBanner: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.surfaceZinc, borderRadius: 10, padding: 12 },
+    scrollContent: { padding: 16, gap: 10, paddingBottom: 100 },
+    headline: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3, color: colors.ink, marginBottom: 2 },
+    pauseBanner: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.surfaceZinc, borderRadius: 10, padding: 10 },
     pauseBannerText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc, flex: 1 },
-    resumeButton: { minHeight: 44, justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+    resumeButton: { justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
     resumeButtonText: { color: colors.white, fontSize: 11, fontWeight: "700" },
-    newOrderBanner: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.ink, borderRadius: 10, padding: 12 },
+    newOrderBanner: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.ink, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12 },
     newOrderText: { fontSize: 12, fontWeight: "700", color: colors.white, flex: 1 },
-    dismissButton: { minHeight: 44, minWidth: 44, alignItems: "center", justifyContent: "center" },
+    dismissButton: { paddingVertical: 4, paddingHorizontal: 4, alignItems: "center", justifyContent: "center" },
     dismissText: { fontSize: 11, fontWeight: "700", color: colors.white, opacity: 0.8 },
     hiddenCount: { fontSize: 11, fontWeight: "600", color: colors.softZinc, paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.dividerZinc },
     navBar: {

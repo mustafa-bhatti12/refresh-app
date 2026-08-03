@@ -17,19 +17,21 @@ export function OrderRow({
   isActioning,
   onPrimaryAction,
   onCancel,
+  isLast,
 }: {
   order: Order;
   dailyNumber: string;
   isActioning: boolean;
   onPrimaryAction: () => void;
   onCancel: () => void;
+  isLast?: boolean;
 }) {
   const colors = useColors();
   const s = styles(colors);
   const nextLabel = NEXT_LABEL[order.status];
 
   return (
-    <View style={s.row}>
+    <View style={[s.row, isLast && s.rowLast]}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={s.title}>
           <Text style={s.dailyNumber}>{dailyNumber}</Text> {order.drink} <Text style={s.meta}>({order.sugar}{order.strength ? `, ${order.strength}` : ""})</Text>
@@ -51,7 +53,7 @@ export function OrderRow({
         )}
       </View>
 
-      <View style={{ alignItems: "flex-end", gap: 6 }}>
+      <View style={{ alignItems: "flex-end", gap: 4, justifyContent: "center" }}>
         {nextLabel && (
           <Pressable
             disabled={isActioning}
@@ -60,6 +62,7 @@ export function OrderRow({
             accessibilityRole="button"
             accessibilityLabel={nextLabel}
             accessibilityState={{ disabled: isActioning, busy: isActioning }}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
           >
             <Text style={s.actionButtonText}>{isActioning ? "…" : nextLabel}</Text>
           </Pressable>
@@ -71,7 +74,7 @@ export function OrderRow({
           accessibilityRole="button"
           accessibilityLabel="Mark as not found"
           accessibilityState={{ disabled: isActioning }}
-          hitSlop={8}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <HugeiconsIcon icon={CancelCircleIcon} size={11} color={colors.softZinc} />
           <Text style={s.cancelText}>Not Found</Text>
@@ -83,15 +86,16 @@ export function OrderRow({
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    row: { flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.dividerZinc },
+    row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.dividerZinc },
+    rowLast: { borderBottomWidth: 0 },
     title: { fontSize: 13, fontWeight: "600", color: colors.ink },
     dailyNumber: { fontWeight: "800" },
     meta: { fontSize: 11, color: colors.quietZinc },
     note: { flex: 1, fontSize: 11, color: colors.softZinc, fontStyle: "italic" },
     employeeName: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
-    actionButton: { minHeight: 44, justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+    actionButton: { justifyContent: "center", backgroundColor: colors.ink, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
     actionButtonDisabled: { opacity: 0.6 },
     actionButtonText: { color: colors.white, fontSize: 11, fontWeight: "700" },
-    notFoundButton: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 3 },
+    notFoundButton: { flexDirection: "row", alignItems: "center", gap: 3, paddingVertical: 2 },
     cancelText: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
   });

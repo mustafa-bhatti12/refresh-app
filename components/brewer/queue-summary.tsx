@@ -42,8 +42,8 @@ function StatCell({ label, value, colors }: { label: string; value: string; colo
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
-    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 12 },
+    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 14 },
+    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 8 },
     row: { flexDirection: "row", gap: 8 },
-    waitText: { fontSize: 11, color: colors.quietZinc, marginTop: 12 },
+    waitText: { fontSize: 11, color: colors.quietZinc, marginTop: 8 },
   });

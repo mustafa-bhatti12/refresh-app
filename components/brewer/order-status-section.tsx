@@ -54,12 +54,12 @@ export function OrderStatusSection({
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    section: { marginBottom: 8 },
+    section: { marginBottom: 0 },
     header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2, alignSelf: "flex-start" },
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
     countPill: { backgroundColor: colors.surfaceZinc, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
     countText: { fontSize: 11, fontWeight: "700", color: colors.midZinc },
-    subtitle: { fontSize: 11, color: colors.softZinc, marginBottom: 10 },
-    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, paddingHorizontal: 16 },
-    emptyText: { fontSize: 12, color: colors.softZinc, paddingVertical: 20, textAlign: "center" },
+    subtitle: { fontSize: 11, color: colors.softZinc, marginBottom: 6 },
+    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, paddingHorizontal: 14 },
+    emptyText: { fontSize: 12, color: colors.softZinc, paddingVertical: 12, textAlign: "center" },
   });

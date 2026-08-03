@@ -53,8 +53,8 @@ export function QuickActions({
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
-    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 12 },
+    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 14 },
+    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 8 },
     actionRow: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: colors.white },
     actionText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc },
   });

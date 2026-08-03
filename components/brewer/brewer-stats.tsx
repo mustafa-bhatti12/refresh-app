@@ -40,7 +40,7 @@ function Stat({ label, value, colors }: { label: string; value: string; colors: 
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 20 },
-    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 12 },
+    card: { borderRadius: 12, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.white, padding: 14 },
+    title: { fontSize: 15, fontWeight: "700", color: colors.ink, marginBottom: 8 },
     grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   });
