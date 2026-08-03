@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, Modal, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, Pressable, Modal, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   CheckmarkCircle02Icon,
@@ -32,13 +32,23 @@ export function ReviewModal({
   order: Order;
   dailyNumber: string;
   mandatory: boolean;
-  onSubmit: (rating: number, comments: string) => void;
+  onSubmit: (rating: number, comments: string) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const colors = useColors();
   const s = styles(colors);
   const [rating, setRating] = useState(5);
   const [comments, setComments] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      await onSubmit(rating, comments);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Modal visible transparent animationType="fade">
@@ -90,13 +100,30 @@ export function ReviewModal({
 
           <View style={s.actions}>
             {!mandatory && (
-              <Pressable style={s.cancelButton} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel">
+              <Pressable
+                disabled={submitting}
+                style={({ pressed }) => [s.cancelButton, pressed && s.cancelButtonPressed]}
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
+              >
                 <Text style={s.cancelText}>Cancel</Text>
               </Pressable>
             )}
-            <Pressable style={s.submitButton} onPress={() => onSubmit(rating, comments)} accessibilityRole="button" accessibilityLabel="Confirm and submit review">
-              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color={colors.white} />
-              <Text style={s.submitText}>Confirm & Submit Review</Text>
+            <Pressable
+              disabled={submitting}
+              style={({ pressed }) => [s.submitButton, (pressed || submitting) && s.submitButtonPressed]}
+              onPress={handleSubmit}
+              accessibilityRole="button"
+              accessibilityLabel="Confirm and submit review"
+              accessibilityState={{ disabled: submitting, busy: submitting }}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color={colors.white} />
+              )}
+              <Text style={s.submitText}>{submitting ? "Submitting…" : "Confirm & Submit Review"}</Text>
             </Pressable>
           </View>
         </View>
@@ -120,7 +147,9 @@ const styles = (colors: ColorRamp) =>
     textArea: { marginTop: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, padding: 10, fontSize: 13, color: colors.ink, backgroundColor: colors.white, textAlignVertical: "top" },
     actions: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 12 },
     cancelButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.hairlineZinc, backgroundColor: colors.white },
+    cancelButtonPressed: { backgroundColor: colors.surfaceZinc },
     cancelText: { fontSize: 12, fontWeight: "700", color: colors.slateZinc },
     submitButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: colors.ink },
+    submitButtonPressed: { backgroundColor: colors.charcoal },
     submitText: { fontSize: 12, fontWeight: "700", color: colors.white },
   });
