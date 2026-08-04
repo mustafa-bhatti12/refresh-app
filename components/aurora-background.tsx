@@ -1,13 +1,19 @@
-import { useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { PixelRatio, StyleSheet, View, type LayoutChangeEvent } from "react-native";
 import { GLView, type ExpoWebGLRenderingContext } from "expo-gl";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 
-// Ported verbatim from refresh-web/src/components/reactbits/Aurora/Aurora.tsx —
+// Ported from refresh-web/src/components/reactbits/Aurora/Aurora.tsx —
 // same shader, same math, same ogl library. The only RN-specific part is below:
 // expo-gl hands back a raw WebGL2 context (no DOM canvas), and ogl's Renderer
 // insists on calling `canvas.getContext()` and poking `gl.canvas.width/style`.
 // A tiny stub object satisfies both without touching ogl's source.
+//
+// Softness/perf: web Aurora uses ogl's default dpr:1 (1 buffer pixel per CSS
+// pixel, then the browser upscales). expo-gl always allocates the backing
+// store at device pixels, so a full-bleed GLView is ~2–3× denser than web and
+// looks crunchier + drops frames. Layout the GLView at (logical / pr) points
+// and scale it back up by pr — backing store lands at 1× logical, matching web.
 const VERT = `#version 300 es
 in vec2 position;
 void main() {
@@ -120,15 +126,27 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
   const speedRef = useRef({ amplitude, blend, speed });
   speedRef.current = { amplitude, blend, speed };
   const animateIdRef = useRef(0);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const pr = PixelRatio.get();
 
   // GLView has no onContextCreate cleanup callback — cancel the RAF loop
   // ourselves on unmount so it doesn't keep calling gl methods on a torn-down
   // native context (the web version's `useEffect` return does this for free).
   useEffect(() => () => cancelAnimationFrame(animateIdRef.current), []);
 
+  const onLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width === size.w && height === size.h) return;
+    setSize({ w: width, h: height });
+  };
+
   const onContextCreate = (exgl: ExpoWebGLRenderingContext) => {
     // See file header — stub just enough of a "canvas" for ogl to leave alone.
-    (exgl as unknown as { canvas: unknown }).canvas = { width: exgl.drawingBufferWidth, height: exgl.drawingBufferHeight, style: {} };
+    (exgl as unknown as { canvas: unknown }).canvas = {
+      width: exgl.drawingBufferWidth,
+      height: exgl.drawingBufferHeight,
+      style: {},
+    };
 
     const renderer = new Renderer({
       canvas: { getContext: () => exgl } as unknown as HTMLCanvasElement,
@@ -143,6 +161,11 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
     // `.renderer` back-reference onto it above) — use this for every ogl call.
     const gl = renderer.gl;
 
+    // Match web Aurora compositing (transparent clear + premultiplied blend).
+    gl.clearColor(0, 0, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
       delete geometry.attributes.uv;
@@ -156,6 +179,9 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
     const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
@@ -174,12 +200,33 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
       program.uniforms.uAmplitude.value = a;
       program.uniforms.uBlend.value = b;
       renderer.render({ scene: mesh });
-      // expo-gl specific: presents the frame. No equivalent needed on the web,
+      // expo-gl specific: sync + present. No equivalent needed on the web,
       // where the browser flips the canvas's backing buffer automatically.
+      exgl.flushEXP();
       exgl.endFrameEXP();
     };
     animateIdRef.current = requestAnimationFrame(update);
   };
 
-  return <GLView style={StyleSheet.absoluteFill} onContextCreate={onContextCreate} />;
+  const gw = size.w / pr;
+  const gh = size.h / pr;
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none" onLayout={onLayout}>
+      {size.w > 0 && (
+        <GLView
+          style={{
+            width: gw,
+            height: gh,
+            transform: [
+              { translateX: (size.w - gw) / 2 },
+              { translateY: (size.h - gh) / 2 },
+              { scale: pr },
+            ],
+          }}
+          onContextCreate={onContextCreate}
+        />
+      )}
+    </View>
+  );
 }

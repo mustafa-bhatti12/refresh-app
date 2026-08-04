@@ -6,12 +6,6 @@ import type { ColorRamp } from "@/constants/colors";
 import type { BrewerItem, Order } from "@/context/RefreshContext";
 import { StatTile } from "./stat-tile";
 
-function formatHour(h: number) {
-  const ampm = h >= 12 ? "PM" : "AM";
-  const displayHr = h % 12 === 0 ? 12 : h % 12;
-  return `${displayHr}${ampm}`;
-}
-
 export function AnalyticsPanel({
   dayOrders,
   floors,
@@ -41,14 +35,6 @@ export function AnalyticsPanel({
   const drinkCounts: Record<string, number> = {};
   drinks.forEach((d) => (drinkCounts[d] = dayOrders.filter((o) => o.drink === d).length));
 
-  const hourBuckets = Array.from({ length: 24 }, (_, i) => ({ hour: i, count: 0 }));
-  dayOrders.forEach((o) => {
-    const hr = new Date(o.createdAt).getHours();
-    hourBuckets[hr].count += 1;
-  });
-  const activeHours = hourBuckets.filter((h) => h.count > 0 || (h.hour >= 8 && h.hour <= 18));
-  const maxHourCount = Math.max(...hourBuckets.map((h) => h.count), 1);
-
   const brewerStats = [...brewers]
     .map((bwr) => {
       const handled = dayOrders.filter((o) => o.brewerId === bwr.id);
@@ -68,23 +54,6 @@ export function AnalyticsPanel({
         <StatTile label="Delivered" value={String(deliveredOrders)} emphasis="ink" />
         <StatTile label="Not Found" value={String(notFoundOrders)} emphasis="outline" />
         <StatTile label="Avg Satisfaction" value={avgRating} />
-      </View>
-
-      <View style={s.card}>
-        <Text style={s.title}>Peak Orders Time</Text>
-        <View style={s.chartRow}>
-          {activeHours.map((bucket) => {
-            const heightPercent = Math.max((bucket.count / maxHourCount) * 100, 4);
-            return (
-              <View key={bucket.hour} style={s.barColumn}>
-                <View style={s.barTrack}>
-                  <View style={[s.bar, { height: `${heightPercent}%` }, bucket.count === 0 && s.barEmpty]} />
-                </View>
-                <Text style={s.barLabel}>{formatHour(bucket.hour)}</Text>
-              </View>
-            );
-          })}
-        </View>
       </View>
 
       <View style={s.card}>
@@ -178,12 +147,6 @@ const styles = (colors: ColorRamp) =>
     title: { fontSize: 15, fontWeight: "700", color: colors.ink },
     subtitle: { fontSize: 11, color: colors.softZinc, marginTop: 4 },
     subLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase", color: colors.softZinc, marginBottom: 8, marginTop: 6 },
-    chartRow: { flexDirection: "row", alignItems: "flex-end", gap: 4, height: 140, marginTop: 12 },
-    barColumn: { flex: 1, alignItems: "center", height: "100%", justifyContent: "flex-end" },
-    barTrack: { flex: 1, width: "100%", justifyContent: "flex-end" },
-    bar: { width: "100%", backgroundColor: colors.slateZinc, borderRadius: 3 },
-    barEmpty: { backgroundColor: colors.surfaceZinc },
-    barLabel: { fontSize: 11, color: colors.softZinc, marginTop: 4 },
     distRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     distLabel: { width: 76, fontSize: 11, fontWeight: "600", color: colors.slateZinc },
     distTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: colors.surfaceZinc, overflow: "hidden" },
