@@ -142,8 +142,7 @@ Consistently rounded, never sharp, never pill-heavy except where a pill is seman
 
 ### Status Badges (no hue — carried over exactly from web)
 - **Pending:** Surface Zinc bg, Mid Zinc text/border, clock/hourglass Hugeicon.
-- **In Progress:** Divider Zinc bg, Charcoal text, a brewing/activity Hugeicon.
-- **Ready:** same tonal family, one step darker than In Progress, a check/bell Hugeicon.
+- **Ready:** Slate Zinc bg, white text, a check/bell Hugeicon.
 - **Delivered:** Ink bg, white text, filled check-circle Hugeicon — the one "solid black" badge, signaling finality.
 - **Not Found / Error:** White bg, Black text, doubled 2px Ink border (not a color) + alert-triangle Hugeicon.
 

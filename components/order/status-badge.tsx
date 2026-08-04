@@ -9,7 +9,7 @@ import {
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 
-type OrderStatus = "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found";
+type OrderStatus = "Pending" | "Ready" | "Delivered" | "Not Found";
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
   const colors = useColors();
@@ -20,13 +20,6 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
         <View style={[s.badge, s.pending]}>
           <HugeiconsIcon icon={Clock01Icon} size={13} color={colors.midZinc} />
           <Text style={[s.text, { color: colors.midZinc }]}>Pending</Text>
-        </View>
-      );
-    case "In Progress":
-      return (
-        <View style={[s.badge, s.inProgress]}>
-          <HugeiconsIcon icon={DeliveryTruck01Icon} size={13} color={colors.slateZinc} />
-          <Text style={[s.text, { color: colors.slateZinc }]}>In Progress</Text>
         </View>
       );
     case "Ready":
@@ -66,7 +59,6 @@ const styles = (colors: ColorRamp) =>
     },
     text: { fontSize: 11, fontWeight: "600" },
     pending: { backgroundColor: colors.surfaceZinc, borderColor: colors.dividerZinc },
-    inProgress: { backgroundColor: colors.dividerZinc, borderColor: colors.hairlineZinc },
     ready: { backgroundColor: colors.slateZinc, borderColor: colors.slateZinc },
     delivered: { backgroundColor: colors.ink, borderColor: colors.ink },
     notFound: { backgroundColor: colors.white, borderColor: colors.ink, borderWidth: 2 },

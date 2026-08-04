@@ -24,7 +24,7 @@ export function OrderScreen() {
   useEffect(() => {
     if (!currentUser) return;
     const myAllOrders = orders.filter((o) => o.employeeId === currentUser.id);
-    const active = myAllOrders.some((o) => o.status === "Pending" || o.status === "In Progress" || o.status === "Ready");
+    const active = myAllOrders.some((o) => o.status === "Pending" || o.status === "Ready");
     setHasActiveOrder(active);
 
     const lastOrder = [...myAllOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];

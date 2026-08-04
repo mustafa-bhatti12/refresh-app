@@ -20,15 +20,14 @@ import { QuickActions } from "./quick-actions";
 import { BrewerStats } from "./brewer-stats";
 
 const NEXT_STATUS: Record<string, Order["status"] | undefined> = {
-  Pending: "In Progress",
-  "In Progress": "Ready",
+  Pending: "Ready",
   Ready: "Delivered",
 };
 
 const COMPLETED_DISPLAY_LIMIT = 8;
 
 const NAV_ITEMS = [
-  { key: "inProgress" as const, label: "In Progress", icon: PlayIcon },
+  { key: "inProgress" as const, label: "New Orders", icon: PlayIcon },
   { key: "ready" as const, label: "Ready", icon: CheckmarkCircle02Icon },
   { key: "completed" as const, label: "Completed", icon: ListViewIcon },
 ];
@@ -73,7 +72,6 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
 
   const todaysOrders = orders.filter((o) => o.createdAt.startsWith(systemDate));
   const pendingOrders = todaysOrders.filter((o) => o.status === "Pending");
-  const inProgressOrders = todaysOrders.filter((o) => o.status === "In Progress");
   const readyOrders = todaysOrders.filter((o) => o.status === "Ready");
   const completedOrders = todaysOrders
     .filter((o) => o.status === "Delivered" || o.status === "Not Found")
@@ -83,7 +81,6 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
 
   const sortByOldest = (list: Order[]) => [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   const pendingList = sortByOldest(pendingOrders);
-  const inProgressList = sortByOldest(inProgressOrders);
   const readyList = sortByOldest(readyOrders);
 
   useEffect(() => {
@@ -168,7 +165,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     }
   };
 
-  const ordersAhead = pendingOrders.length + inProgressOrders.length;
+  const ordersAhead = pendingOrders.length;
   const estWaitMins = brewerStats.avgOrderMins !== null && ordersAhead > 0 ? brewerStats.avgOrderMins * ordersAhead : null;
 
   const renderRows = (list: Order[]) => (
@@ -217,7 +214,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   };
 
   const navCounts: Record<"inProgress" | "ready" | "completed", number> = {
-    inProgress: inProgressList.length,
+    inProgress: pendingList.length,
     ready: readyList.length,
     completed: completedOrders.length,
   };
@@ -264,13 +261,9 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
           </View>
         )}
 
-        <OrderStatusSection title="New Orders" subtitle="Waiting to be confirmed and started." count={pendingList.length} emptyMessage="No new orders right now." isEmpty={pendingList.length === 0}>
-          {renderRows(pendingList)}
-        </OrderStatusSection>
-
         <View onLayout={onSectionLayout("inProgress")}>
-          <OrderStatusSection title="In Progress" subtitle="Orders currently being prepared." count={inProgressList.length} emptyMessage="Nothing being prepared right now." isEmpty={inProgressList.length === 0}>
-            {renderRows(inProgressList)}
+          <OrderStatusSection title="New Orders" subtitle="Waiting to be confirmed and started." count={pendingList.length} emptyMessage="No new orders right now." isEmpty={pendingList.length === 0}>
+            {renderRows(pendingList)}
           </OrderStatusSection>
         </View>
 
@@ -298,7 +291,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
 
         {/* Queue-first: the orders the brewer needs to act on lead the page;
             the overview card is a summary you check after, not a gate before. */}
-        <QueueSummary ordersAhead={ordersAhead} inPreparation={inProgressOrders.length} ready={readyOrders.length} estWaitMins={estWaitMins} />
+        <QueueSummary ordersAhead={ordersAhead} ready={readyOrders.length} estWaitMins={estWaitMins} />
 
         <QuickActions isPaused={isPaused} isTogglingPause={pauseToggling} isRefreshing={isRefreshing} onTogglePause={handleTogglePause} onRefresh={handleRefresh} />
         <BrewerStats {...brewerStats} />

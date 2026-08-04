@@ -142,7 +142,7 @@ export function MyOrdersPanel({
         const hasReview = reviewedOrderIds.has(order.id);
         const isEditing = editingOrderId === order.id;
         const queuePosition =
-          order.status === "Pending" || order.status === "In Progress" ? queuePositionOf(order.id) : null;
+          order.status === "Pending" ? queuePositionOf(order.id) : null;
 
         return (
           <Animated.View entering={FadeInDown.duration(280)} exiting={FadeOutRight.duration(220)} layout={LinearTransition.duration(220)} style={s.orderRow}>

@@ -5,7 +5,7 @@ export function useBrewerStats() {
 
   const todaysOrders = orders.filter((o) => o.createdAt.startsWith(systemDate));
   const completedToday = todaysOrders.filter((o) => o.status === "Delivered" || o.status === "Not Found");
-  const inProgressToday = todaysOrders.filter((o) => o.status === "In Progress");
+  const pendingToday = todaysOrders.filter((o) => o.status === "Pending");
   const deliveredToday = todaysOrders.filter((o) => o.status === "Delivered");
 
   const avgOrderMs =
@@ -18,7 +18,7 @@ export function useBrewerStats() {
   return {
     totalToday: todaysOrders.length,
     completedToday: completedToday.length,
-    inProgressToday: inProgressToday.length,
+    pendingToday: pendingToday.length,
     avgOrderMins,
     avgOrderTimeLabel,
   };

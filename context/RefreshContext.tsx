@@ -20,7 +20,7 @@ export interface Order {
   floor: string;
   drink: string;
   sugar: string;
-  status: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found";
+  status: "Pending" | "Ready" | "Delivered" | "Not Found";
   brewerId?: string | null;
   brewerName?: string | null;
   createdAt: string;
@@ -92,8 +92,8 @@ interface RefreshContextType {
   placeOrder: (floor: string, drink: string, sugar: string, strength?: string, note?: string) => Promise<void>;
   updateOrderStatus: (
     id: string,
-    status: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found",
-    expectedCurrentStatus?: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found"
+    status: "Pending" | "Ready" | "Delivered" | "Not Found",
+    expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found"
   ) => Promise<void>;
   refreshOrders: () => Promise<void>;
   updateOrderDetails: (id: string, drink: string, sugar: string, floor: string) => Promise<void>;
@@ -646,8 +646,8 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateOrderStatus = useCallback(
     async (
       id: string,
-      newStatus: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found",
-      expectedCurrentStatus?: "Pending" | "In Progress" | "Ready" | "Delivered" | "Not Found"
+      newStatus: "Pending" | "Ready" | "Delivered" | "Not Found",
+      expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found"
     ) => {
       let updatePayload: Record<string, unknown> = { status: newStatus, brewer_id: currentUser?.id };
       if (newStatus === "Not Found") {

@@ -26,7 +26,7 @@ export function AnalyticsPanel({
 
   const totalOrders = dayOrders.length;
   const pendingOrders = dayOrders.filter((o) => o.status === "Pending").length;
-  const activeOrders = dayOrders.filter((o) => o.status === "In Progress" || o.status === "Ready").length;
+  const activeOrders = dayOrders.filter((o) => o.status === "Ready").length;
   const deliveredOrders = dayOrders.filter((o) => o.status === "Delivered").length;
   const notFoundOrders = dayOrders.filter((o) => o.status === "Not Found").length;
 
@@ -50,7 +50,7 @@ export function AnalyticsPanel({
       <View style={s.statRow}>
         <StatTile label="Total Orders" value={String(totalOrders)} />
         <StatTile label="Pending" value={String(pendingOrders)} />
-        <StatTile label="In Progress" value={String(activeOrders)} />
+        <StatTile label="Ready" value={String(activeOrders)} />
         <StatTile label="Delivered" value={String(deliveredOrders)} emphasis="ink" />
         <StatTile label="Not Found" value={String(notFoundOrders)} emphasis="outline" />
         <StatTile label="Avg Satisfaction" value={avgRating} />

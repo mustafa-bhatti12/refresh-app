@@ -8,7 +8,6 @@ import type { Order } from "@/context/RefreshContext";
 
 const NEXT_LABEL: Record<string, string> = {
   Pending: "Start Preparing",
-  "In Progress": "Mark Ready",
   Ready: "Mark Delivered",
 };
 

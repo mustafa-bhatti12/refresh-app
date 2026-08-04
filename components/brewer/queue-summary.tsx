@@ -5,12 +5,10 @@ import { Counter } from "@/components/counter";
 
 export function QueueSummary({
   ordersAhead,
-  inPreparation,
   ready,
   estWaitMins,
 }: {
   ordersAhead: number;
-  inPreparation: number;
   ready: number;
   estWaitMins: number | null;
 }) {
@@ -22,7 +20,6 @@ export function QueueSummary({
       <Text style={s.title}>Queue Overview</Text>
       <View style={s.row}>
         <StatCell label="Orders Ahead" value={ordersAhead} colors={colors} />
-        <StatCell label="Preparing" value={inPreparation} colors={colors} />
         <StatCell label="Ready" value={ready} colors={colors} />
       </View>
       {estWaitMins !== null && (

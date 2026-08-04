@@ -6,12 +6,12 @@ import { Counter } from "@/components/counter";
 export function BrewerStats({
   totalToday,
   completedToday,
-  inProgressToday,
+  pendingToday,
   avgOrderTimeLabel,
 }: {
   totalToday: number;
   completedToday: number;
-  inProgressToday: number;
+  pendingToday: number;
   avgOrderTimeLabel: string | null;
 }) {
   const colors = useColors();
@@ -23,7 +23,7 @@ export function BrewerStats({
       <View style={s.grid}>
         <Stat label="Total" value={totalToday} colors={colors} />
         <Stat label="Completed" value={completedToday} colors={colors} />
-        <Stat label="In Progress" value={inProgressToday} colors={colors} />
+        <Stat label="Pending" value={pendingToday} colors={colors} />
         <View style={{ width: "48%" }}>
           <Text style={{ fontSize: 18, fontWeight: "800", color: colors.ink }}>{avgOrderTimeLabel ?? "—"}</Text>
           <Text style={{ fontSize: 11, fontWeight: "600", color: colors.softZinc, marginTop: 2 }}>Avg Time</Text>
