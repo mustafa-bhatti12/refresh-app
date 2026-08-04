@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import Animated, { ZoomIn } from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
@@ -37,9 +38,11 @@ export function OrderStatusSection({
         accessibilityState={collapsible ? { expanded: !collapsed } : undefined}
       >
         <Text style={s.title}>{title}</Text>
-        <View style={s.countPill}>
+        {/* Remount-on-change is the whole trick: a fresh key gives Reanimated a
+            fresh mount to play `entering` on, no shared-value wiring needed. */}
+        <Animated.View key={count} entering={ZoomIn.duration(220)} style={s.countPill}>
           <Text style={s.countText}>{count}</Text>
-        </View>
+        </Animated.View>
         {collapsible && (
           <HugeiconsIcon icon={collapsed ? ArrowDown01Icon : ArrowUp01Icon} size={16} color={colors.softZinc} />
         )}

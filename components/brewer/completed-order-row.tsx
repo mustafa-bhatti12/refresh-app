@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import type { Order } from "@/context/RefreshContext";
@@ -9,7 +10,7 @@ export function CompletedOrderRow({ order, dailyNumber }: { order: Order; dailyN
   const s = styles(colors);
 
   return (
-    <View style={s.row}>
+    <Animated.View entering={FadeIn.duration(240)} style={s.row}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={s.title}>
           <Text style={s.dailyNumber}>{dailyNumber}</Text> {order.drink} <Text style={s.meta}>· {order.floor}</Text>
@@ -17,7 +18,7 @@ export function CompletedOrderRow({ order, dailyNumber }: { order: Order; dailyN
         <Text style={s.meta}>{order.employeeName}</Text>
       </View>
       <StatusBadge status={order.status} />
-    </View>
+    </Animated.View>
   );
 }
 

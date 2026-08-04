@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import Animated, { FadeInDown, FadeOutRight, LinearTransition } from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Location01Icon, Note01Icon, CancelCircleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
@@ -31,7 +32,12 @@ export function OrderRow({
   const nextLabel = NEXT_LABEL[order.status];
 
   return (
-    <View style={[s.row, isLast && s.rowLast]}>
+    <Animated.View
+      entering={FadeInDown.duration(280)}
+      exiting={FadeOutRight.duration(220)}
+      layout={LinearTransition.duration(220)}
+      style={[s.row, isLast && s.rowLast]}
+    >
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={s.title}>
           <Text style={s.dailyNumber}>{dailyNumber}</Text> {order.drink} <Text style={s.meta}>({order.sugar}{order.strength ? `, ${order.strength}` : ""})</Text>
@@ -80,7 +86,7 @@ export function OrderRow({
           <Text style={s.cancelText}>Not Found</Text>
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

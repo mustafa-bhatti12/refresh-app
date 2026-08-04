@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, Alert, StyleSheet, FlatList, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, Modal, StyleSheet, FlatList, type LayoutChangeEvent, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { PauseIcon, Notification01Icon, PlayIcon, CheckmarkCircle02Icon, ListViewIcon, User03Icon } from "@hugeicons/core-free-icons";
+import { PauseIcon, Notification01Icon, PlayIcon, CheckmarkCircle02Icon, ListViewIcon, User03Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
@@ -52,9 +53,21 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [newOrderAlert, setNewOrderAlert] = useState(false);
   const [activeSection, setActiveSection] = useState<"inProgress" | "ready" | "completed">("inProgress");
+  const [cancelConfirmOrder, setCancelConfirmOrder] = useState<Order | null>(null);
   const prevPendingCount = useRef<number | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const sectionY = useRef<Record<"inProgress" | "ready" | "completed", number>>({ inProgress: 0, ready: 0, completed: 0 });
+  const navLayout = useRef<Record<"inProgress" | "ready" | "completed", { x: number; width: number }>>({
+    inProgress: { x: 0, width: 0 },
+    ready: { x: 0, width: 0 },
+    completed: { x: 0, width: 0 },
+  });
+  const indicatorX = useSharedValue(0);
+  const indicatorWidth = useSharedValue(0);
+  const indicatorStyle = useAnimatedStyle(() => ({
+    left: indicatorX.value,
+    width: indicatorWidth.value,
+  }));
   const brewerStats = useBrewerStats();
 
   const todaysOrders = orders.filter((o) => o.createdAt.startsWith(systemDate));
@@ -83,6 +96,14 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     }
     prevPendingCount.current = pendingOrders.length;
   }, [pendingOrders.length]);
+
+  useEffect(() => {
+    const target = navLayout.current[activeSection];
+    if (target.width === 0) return;
+    indicatorX.value = withSpring(target.x, { damping: 20, stiffness: 240 });
+    indicatorWidth.value = withSpring(target.width, { damping: 20, stiffness: 240 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
 
   if (!currentUser) return null;
 
@@ -113,28 +134,19 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     }
   };
 
-  const handleCancel = (order: Order) => {
-    Alert.alert(
-      "Mark as Not Found?",
-      `${getDailyOrderNumber(order.id, order.createdAt)} · ${order.floor} · ${order.drink}`,
-      [
-        { text: "Keep it", style: "cancel" },
-        {
-          text: "Not Found",
-          style: "destructive",
-          onPress: async () => {
-            setActioningOrderId(order.id);
-            try {
-              await updateOrderStatus(order.id, "Not Found", order.status);
-            } catch (err) {
-              Alert.alert("Update failed", err instanceof Error ? err.message : "Failed to cancel order.");
-            } finally {
-              setActioningOrderId(null);
-            }
-          },
-        },
-      ]
-    );
+  const handleCancel = (order: Order) => setCancelConfirmOrder(order);
+
+  const confirmCancel = async (order: Order) => {
+    setActioningOrderId(order.id);
+    try {
+      await updateOrderStatus(order.id, "Not Found", order.status);
+      setCancelConfirmOrder(null);
+    } catch (err) {
+      // Modal stays open on failure so the order is still in front of the brewer.
+      Alert.alert("Update failed", err instanceof Error ? err.message : "Failed to cancel order.");
+    } finally {
+      setActioningOrderId(null);
+    }
   };
 
   const handleTogglePause = async () => {
@@ -192,6 +204,23 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
     setActiveSection(current);
   };
 
+  const onNavLayout = (key: "inProgress" | "ready" | "completed") => (e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    navLayout.current[key] = { x, width };
+    // First measurement for the currently-active tab: snap the indicator into
+    // place instead of springing in from x=0 on mount.
+    if (activeSection === key) {
+      indicatorX.value = x;
+      indicatorWidth.value = width;
+    }
+  };
+
+  const navCounts: Record<"inProgress" | "ready" | "completed", number> = {
+    inProgress: inProgressList.length,
+    ready: readyList.length,
+    completed: completedOrders.length,
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <ScrollView ref={scrollRef} onScroll={onScroll} scrollEventThrottle={100} contentContainerStyle={s.scrollContent}>
@@ -234,8 +263,6 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
           </View>
         )}
 
-        <QueueSummary ordersAhead={ordersAhead} inPreparation={inProgressOrders.length} ready={readyOrders.length} estWaitMins={estWaitMins} />
-
         <OrderStatusSection title="New Orders" subtitle="Waiting to be confirmed and started." count={pendingList.length} emptyMessage="No new orders right now." isEmpty={pendingList.length === 0}>
           {renderRows(pendingList)}
         </OrderStatusSection>
@@ -268,24 +295,38 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
           </OrderStatusSection>
         </View>
 
+        {/* Queue-first: the orders the brewer needs to act on lead the page;
+            the overview card is a summary you check after, not a gate before. */}
+        <QueueSummary ordersAhead={ordersAhead} inPreparation={inProgressOrders.length} ready={readyOrders.length} estWaitMins={estWaitMins} />
+
         <QuickActions isPaused={isPaused} isTogglingPause={pauseToggling} isRefreshing={isRefreshing} onTogglePause={handleTogglePause} onRefresh={handleRefresh} />
         <BrewerStats {...brewerStats} />
       </ScrollView>
 
       {!embedded && (
         <View style={[s.navBar, { paddingBottom: insets.bottom + 8 }]}>
+          <Animated.View style={[s.navIndicator, indicatorStyle]} />
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.key;
+            const count = navCounts[item.key];
             return (
               <Pressable
                 key={item.key}
                 style={s.navItem}
+                onLayout={onNavLayout(item.key)}
                 onPress={() => scrollToSection(item.key)}
                 accessibilityRole="tab"
-                accessibilityLabel={item.label}
+                accessibilityLabel={count > 0 ? `${item.label}, ${count}` : item.label}
                 accessibilityState={{ selected: isActive }}
               >
-                <HugeiconsIcon icon={item.icon} size={20} color={isActive ? colors.ink : colors.softZinc} strokeWidth={isActive ? 2 : 1.5} />
+                <View>
+                  <HugeiconsIcon icon={item.icon} size={20} color={isActive ? colors.ink : colors.softZinc} strokeWidth={isActive ? 2 : 1.5} />
+                  {count > 0 && (
+                    <View style={s.navBadge}>
+                      <Text style={s.navBadgeText}>{count > 9 ? "9+" : count}</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={[s.navLabel, isActive && s.navLabelActive]}>{item.label}</Text>
               </Pressable>
             );
@@ -301,6 +342,38 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
           </Pressable>
         </View>
       )}
+
+      <Modal visible={!!cancelConfirmOrder} transparent animationType="fade" onRequestClose={() => setCancelConfirmOrder(null)}>
+        <Pressable style={s.modalOverlay} onPress={() => setCancelConfirmOrder(null)}>
+          <Pressable style={s.modalCard} onPress={(e) => e.stopPropagation()}>
+            {cancelConfirmOrder && (
+              <>
+                <View style={s.modalIconWrap}>
+                  <HugeiconsIcon icon={Cancel01Icon} size={22} color={colors.ink} />
+                </View>
+                <Text style={s.modalTitle}>Mark as Not Found?</Text>
+                <Text style={s.modalSubtitle}>
+                  {getDailyOrderNumber(cancelConfirmOrder.id, cancelConfirmOrder.createdAt)} · {cancelConfirmOrder.floor} · {cancelConfirmOrder.drink}
+                </Text>
+                <View style={s.modalActions}>
+                  <Pressable style={s.modalKeepButton} onPress={() => setCancelConfirmOrder(null)} accessibilityRole="button" accessibilityLabel="Keep order">
+                    <Text style={s.modalKeepText}>Keep Order</Text>
+                  </Pressable>
+                  <Pressable
+                    disabled={actioningOrderId === cancelConfirmOrder.id}
+                    style={s.modalCancelButton}
+                    onPress={() => confirmCancel(cancelConfirmOrder)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Yes, cancel order"
+                  >
+                    <Text style={s.modalCancelText}>{actioningOrderId === cancelConfirmOrder.id ? "…" : "Yes, Cancel"}</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -328,4 +401,17 @@ const styles = (colors: ColorRamp) =>
     navItem: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", gap: 3 },
     navLabel: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
     navLabelActive: { color: colors.ink, fontWeight: "700" },
+    navIndicator: { position: "absolute", top: 0, height: 2, borderRadius: 999, backgroundColor: colors.ink },
+    navBadge: { position: "absolute", top: -4, right: -8, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 999, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
+    navBadgeText: { fontSize: 9, fontWeight: "700", color: colors.white },
+    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 16 },
+    modalCard: { width: "100%", maxWidth: 380, borderRadius: 16, backgroundColor: colors.white, padding: 24, gap: 4, alignItems: "center" },
+    modalIconWrap: { width: 40, height: 40, borderRadius: 9999, backgroundColor: colors.surfaceZinc, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+    modalTitle: { fontSize: 16, fontWeight: "700", color: colors.ink },
+    modalSubtitle: { fontSize: 12, fontWeight: "600", color: colors.quietZinc, marginTop: 4, textAlign: "center" },
+    modalActions: { flexDirection: "row", gap: 10, marginTop: 16, width: "100%" },
+    modalKeepButton: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, backgroundColor: colors.white },
+    modalKeepText: { fontSize: 13, fontWeight: "700", color: colors.slateZinc },
+    modalCancelButton: { flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: colors.ink },
+    modalCancelText: { fontSize: 13, fontWeight: "700", color: colors.white },
   });

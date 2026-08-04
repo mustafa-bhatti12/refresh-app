@@ -12,6 +12,8 @@ export const lightColors = {
   paper: "#fafafa",
   white: "#ffffff",
   black: "#000000",
+  copper: "#C9855C",
+  copperShadowOpacity: 0.16,
 };
 
 export const darkColors = {
@@ -28,6 +30,8 @@ export const darkColors = {
   paper: "#09090b",
   white: "#18181b",
   black: "#000000",
+  copper: "#C9855C",
+  copperShadowOpacity: 0.55,
 };
 
 export type ColorRamp = typeof lightColors;

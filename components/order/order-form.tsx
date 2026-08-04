@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, Platform, useColorScheme } from "react-native";
+import Animated, {
+  FadeInDown,
+  FadeIn,
+  FadeOut,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  interpolateColor,
+} from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   CheckmarkCircle01Icon,
@@ -28,6 +39,127 @@ function formatCooldown(mins: number) {
   return `${remainingMins} minute${remainingMins !== 1 ? "s" : ""}`;
 }
 
+// Shared press-bounce physics for chips/tiles/buttons — the RN analogue of the
+// web's whileHover/whileTap spring, since Pressable has no built-in animation.
+function usePressScale() {
+  const scale = useSharedValue(1);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const onPressIn = () => {
+    scale.value = withSpring(0.96, { damping: 16, stiffness: 320 });
+  };
+  const onPressOut = () => {
+    scale.value = withSpring(1, { damping: 14, stiffness: 260 });
+  };
+  return { style, onPressIn, onPressOut };
+}
+
+function FloorChip({ label, selected, onPress, colors, s }: { label: string; selected: boolean; onPress: () => void; colors: ColorRamp; s: ReturnType<typeof styles> }) {
+  const { style: pressStyle, onPressIn, onPressOut } = usePressScale();
+  const t = useSharedValue(selected ? 1 : 0);
+  useEffect(() => {
+    t.value = withTiming(selected ? 1 : 0, { duration: 200 });
+  }, [selected, t]);
+  const chipStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(t.value, [0, 1], [colors.white, colors.ink]),
+    borderColor: interpolateColor(t.value, [0, 1], [colors.hairlineZinc, colors.ink]),
+  }));
+  const textStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(t.value, [0, 1], [colors.slateZinc, colors.white]),
+  }));
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} accessibilityRole="button" accessibilityLabel={`Floor ${label}`} accessibilityState={{ selected }}>
+      <Animated.View style={[s.floorChip, pressStyle, chipStyle]}>
+        <Animated.Text style={[s.floorChipText, textStyle]}>{label}</Animated.Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function PrefChip({ label, icon, selected, onPress, colors, s }: { label: string; icon: unknown; selected: boolean; onPress: () => void; colors: ColorRamp; s: ReturnType<typeof styles> }) {
+  const { style: pressStyle, onPressIn, onPressOut } = usePressScale();
+  const t = useSharedValue(selected ? 1 : 0);
+  useEffect(() => {
+    t.value = withTiming(selected ? 1 : 0, { duration: 200 });
+  }, [selected, t]);
+  const chipStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(t.value, [0, 1], [colors.white, colors.ink]),
+    borderColor: interpolateColor(t.value, [0, 1], [colors.hairlineZinc, colors.ink]),
+  }));
+  const textStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(t.value, [0, 1], [colors.slateZinc, colors.white]),
+  }));
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} style={{ flex: 1 }} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected }}>
+      <Animated.View style={[s.prefChip, pressStyle, chipStyle]}>
+        {/* Icon tint switches instantly rather than animating — HugeiconsIcon's
+            color prop isn't a Reanimated shared value target, and a one-frame
+            snap here is unnoticeable next to the chip's color sweep. */}
+        <HugeiconsIcon icon={icon as never} size={15} color={selected ? colors.white : colors.slateZinc} />
+        <Animated.Text style={[s.prefChipText, textStyle]}>{label}</Animated.Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function DrinkTile({
+  name,
+  icon,
+  enabled,
+  selected,
+  onPress,
+  colors,
+  s,
+}: {
+  name: string;
+  icon: unknown;
+  enabled: boolean;
+  selected: boolean;
+  onPress: () => void;
+  colors: ColorRamp;
+  s: ReturnType<typeof styles>;
+}) {
+  const { style: pressStyle, onPressIn, onPressOut } = usePressScale();
+  const t = useSharedValue(selected ? 1 : 0);
+  useEffect(() => {
+    t.value = withTiming(selected ? 1 : 0, { duration: 200 });
+  }, [selected, t]);
+  const tileStyle = useAnimatedStyle(() => ({
+    borderColor: interpolateColor(t.value, [0, 1], [colors.dividerZinc, colors.ink]),
+  }));
+
+  return (
+    <Pressable
+      disabled={!enabled}
+      onPress={onPress}
+      onPressIn={enabled ? onPressIn : undefined}
+      onPressOut={enabled ? onPressOut : undefined}
+      style={s.drinkTileWrap}
+      accessibilityRole="button"
+      accessibilityLabel={enabled ? name : `${name}, unavailable`}
+      accessibilityState={{ selected: selected && enabled, disabled: !enabled }}
+    >
+      <Animated.View
+        style={[
+          s.drinkTile,
+          !enabled && s.drinkTileDisabled,
+          enabled && tileStyle,
+          enabled && pressStyle,
+          selected && enabled && s.drinkTileGlow,
+        ]}
+      >
+        {selected && enabled && (
+          <Animated.View entering={ZoomIn.duration(160)} style={s.drinkCheck}>
+            <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color={colors.white} />
+          </Animated.View>
+        )}
+        <HugeiconsIcon icon={icon as never} size={26} color={colors.ink} />
+        <Text style={s.drinkName} numberOfLines={1}>{name}</Text>
+        {!enabled && <Text style={s.drinkUnavailable}>Unavailable</Text>}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export function OrderForm({
   hasActiveOrder,
   cooldownRemaining,
@@ -40,6 +172,7 @@ export function OrderForm({
   onSubmit: (floor: string, drink: string, sugar: string, strength: string, note: string) => Promise<void>;
 }) {
   const colors = useColors();
+  const scheme = useColorScheme();
   const s = styles(colors);
   const { floors, beverages, sugarOptions, strengthOptions, currentUser } = useRefresh();
 
@@ -49,6 +182,8 @@ export function OrderForm({
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const { style: submitPressStyle, onPressIn: onSubmitPressIn, onPressOut: onSubmitPressOut } = usePressScale();
 
   useEffect(() => {
     if (currentUser?.floor) return;
@@ -78,102 +213,73 @@ export function OrderForm({
   return (
     <View style={s.card}>
       {/* 01 Floor */}
-      <View style={s.section}>
+      <Animated.View entering={FadeInDown.duration(400).delay(0)} style={s.section}>
         <View style={s.sectionHeader}>
-          <View style={s.stepBadge}>
-            <Text style={s.stepBadgeText}>01</Text>
+          <View style={[s.stepBadge, scheme === "dark" && { backgroundColor: colors.copper }]}>
+            <Text style={[s.stepBadgeText, scheme === "dark" && { color: colors.black }]}>01</Text>
           </View>
           <Text style={s.sectionTitle}>Where should we deliver it?</Text>
         </View>
         <View style={s.chipRow}>
-          {floors.map((f) => {
-            const selected = floor === f;
-            return (
-              <Pressable
-                key={f}
-                onPress={() => setFloor(f)}
-                style={[s.floorChip, selected && s.chipActive]}
-                accessibilityRole="button"
-                accessibilityLabel={`Floor ${f}`}
-                accessibilityState={{ selected }}
-              >
-                <Text style={[s.floorChipText, selected && s.chipTextActive]}>{f}</Text>
-              </Pressable>
-            );
-          })}
+          {floors.map((f) => (
+            <FloorChip key={f} label={f} selected={floor === f} onPress={() => setFloor(f)} colors={colors} s={s} />
+          ))}
         </View>
-      </View>
+      </Animated.View>
 
       {/* 02 Drink */}
-      <View style={s.section}>
+      <Animated.View entering={FadeInDown.duration(400).delay(70)} style={s.section}>
         <View style={s.sectionHeader}>
-          <View style={s.stepBadge}>
-            <Text style={s.stepBadgeText}>02</Text>
+          <View style={[s.stepBadge, scheme === "dark" && { backgroundColor: colors.copper }]}>
+            <Text style={[s.stepBadgeText, scheme === "dark" && { color: colors.black }]}>02</Text>
           </View>
           <Text style={s.sectionTitle}>What would you like?</Text>
         </View>
         <View style={s.drinkGrid}>
-          {beverages.map((bev) => {
-            const selected = drink === bev.name;
-            const DrinkIcon = getBeverageIcon(bev.icon);
-            return (
-              <Pressable
-                key={bev.id}
-                disabled={!bev.enabled}
-                onPress={() => setDrink(bev.name)}
-                style={[s.drinkTile, !bev.enabled && s.drinkTileDisabled, selected && bev.enabled && s.drinkTileSelected]}
-                accessibilityRole="button"
-                accessibilityLabel={bev.enabled ? bev.name : `${bev.name}, unavailable`}
-                accessibilityState={{ selected: selected && bev.enabled, disabled: !bev.enabled }}
-              >
-                {selected && bev.enabled && (
-                  <View style={s.drinkCheck}>
-                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color={colors.white} />
-                  </View>
-                )}
-                <HugeiconsIcon icon={DrinkIcon} size={26} color={colors.ink} />
-                <Text style={s.drinkName} numberOfLines={1}>{bev.name}</Text>
-                {!bev.enabled && <Text style={s.drinkUnavailable}>Unavailable</Text>}
-              </Pressable>
-            );
-          })}
+          {beverages.map((bev) => (
+            <DrinkTile
+              key={bev.id}
+              name={bev.name}
+              icon={getBeverageIcon(bev.icon)}
+              enabled={bev.enabled}
+              selected={drink === bev.name}
+              onPress={() => setDrink(bev.name)}
+              colors={colors}
+              s={s}
+            />
+          ))}
         </View>
-      </View>
+      </Animated.View>
 
       {/* 03 Preferences */}
-      <View style={s.section}>
+      <Animated.View entering={FadeInDown.duration(400).delay(140)} style={s.section}>
         <View style={s.sectionHeader}>
-          <View style={s.stepBadge}>
-            <Text style={s.stepBadgeText}>03</Text>
+          <View style={[s.stepBadge, scheme === "dark" && { backgroundColor: colors.copper }]}>
+            <Text style={[s.stepBadgeText, scheme === "dark" && { color: colors.black }]}>03</Text>
           </View>
           <Text style={s.sectionTitle}>Preferences</Text>
         </View>
         <Text style={s.label}>Sugar</Text>
         <View style={s.chipRow2col}>
-          {sugarOptions.map((opt) => {
-            const selected = sugar === opt;
-            return (
-              <Pressable
-                key={opt}
-                onPress={() => setSugar(opt)}
-                style={[s.prefChip, selected && s.chipActive]}
-                accessibilityRole="button"
-                accessibilityLabel={opt === "Sugar" ? "With Sugar" : "Sugar-Free"}
-                accessibilityState={{ selected }}
-              >
-                <HugeiconsIcon icon={opt === "Sugar" ? CheckmarkCircle01Icon : Cancel01Icon} size={15} color={selected ? colors.white : colors.slateZinc} />
-                <Text style={[s.prefChipText, selected && s.chipTextActive]}>{opt === "Sugar" ? "With Sugar" : "Sugar-Free"}</Text>
-              </Pressable>
-            );
-          })}
+          {sugarOptions.map((opt) => (
+            <PrefChip
+              key={opt}
+              label={opt === "Sugar" ? "With Sugar" : "Sugar-Free"}
+              icon={opt === "Sugar" ? CheckmarkCircle01Icon : Cancel01Icon}
+              selected={sugar === opt}
+              onPress={() => setSugar(opt)}
+              colors={colors}
+              s={s}
+            />
+          ))}
         </View>
-      </View>
+      </Animated.View>
 
       {/* 04 Note */}
-      <View style={s.section}>
+      <Animated.View entering={FadeInDown.duration(400).delay(210)} style={s.section}>
         <View style={s.sectionHeader}>
-          <View style={s.stepBadge}>
-            <Text style={s.stepBadgeText}>04</Text>
+          <View style={[s.stepBadge, scheme === "dark" && { backgroundColor: colors.copper }]}>
+            <Text style={[s.stepBadgeText, scheme === "dark" && { color: colors.black }]}>04</Text>
           </View>
           <Text style={s.sectionTitle}>Anything else?</Text>
         </View>
@@ -191,23 +297,25 @@ export function OrderForm({
           <HugeiconsIcon icon={ArrowDown01Icon} size={16} color={colors.quietZinc} />
         </Pressable>
         {showNote && (
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            multiline
-            numberOfLines={2}
-            placeholder="e.g. Less sugar, extra hot, etc."
-            placeholderTextColor={colors.softZinc}
-            style={s.noteInput}
-            accessibilityLabel="Order note"
-          />
+          <Animated.View entering={FadeInDown.duration(200)} exiting={FadeOut.duration(150)}>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              multiline
+              numberOfLines={2}
+              placeholder="e.g. Less sugar, extra hot, etc."
+              placeholderTextColor={colors.softZinc}
+              style={s.noteInput}
+              accessibilityLabel="Order note"
+            />
+          </Animated.View>
         )}
-      </View>
+      </Animated.View>
 
       {floor && drink && sugar && (
-        <Text style={s.summary}>
+        <Animated.Text key={`${floor}-${drink}-${sugar}`} entering={FadeIn.duration(180)} exiting={FadeOut.duration(120)} style={s.summary}>
           {floor} · {drink} · {sugar === "Sugar" ? "With Sugar" : "Sugar-Free"}
-        </Text>
+        </Animated.Text>
       )}
 
       {noBrewersActive ? (
@@ -229,13 +337,23 @@ export function OrderForm({
         <Pressable
           disabled={!floor || !drink || !sugar || submitting}
           onPress={handleSubmit}
-          style={[s.submitButton, (!floor || !drink || !sugar || submitting) && s.submitButtonDisabled]}
+          onPressIn={onSubmitPressIn}
+          onPressOut={onSubmitPressOut}
           accessibilityRole="button"
           accessibilityLabel="Place order"
           accessibilityState={{ disabled: !floor || !drink || !sugar || submitting, busy: submitting }}
         >
-          <HugeiconsIcon icon={SendingOrderIcon} size={16} color={colors.white} />
-          <Text style={s.submitText}>{submitting ? "Placing Order…" : "Place Order"}</Text>
+          <Animated.View
+            style={[
+              s.submitButton,
+              s.submitGlow,
+              submitPressStyle,
+              (!floor || !drink || !sugar || submitting) && s.submitButtonDisabled,
+            ]}
+          >
+            <HugeiconsIcon icon={SendingOrderIcon} size={16} color={colors.white} />
+            <Text style={s.submitText}>{submitting ? "Placing Order…" : "Place Order"}</Text>
+          </Animated.View>
         </Pressable>
       )}
     </View>
@@ -254,15 +372,19 @@ const styles = (colors: ColorRamp) =>
     chipRow2col: { flexDirection: "row", gap: 10 },
     floorChip: { minHeight: 44, justifyContent: "center", borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: colors.white },
     floorChipText: { fontSize: 13, fontWeight: "600", color: colors.slateZinc },
-    prefChip: { minHeight: 44, flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, backgroundColor: colors.white },
+    prefChip: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, paddingVertical: 10, backgroundColor: colors.white },
     prefChipText: { fontSize: 13, fontWeight: "500", color: colors.slateZinc },
-    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    chipTextActive: { color: colors.white },
     label: { fontSize: 11, fontWeight: "600", color: colors.quietZinc, marginBottom: 6 },
     drinkGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-    drinkTile: { flexBasis: "48%", flexGrow: 1, height: 100, justifyContent: "center", borderWidth: 2, borderColor: colors.dividerZinc, borderRadius: 12, alignItems: "center", gap: 6, backgroundColor: colors.white },
-    drinkTileSelected: { borderColor: colors.ink },
+    drinkTileWrap: { flexBasis: "48%", flexGrow: 1 },
+    drinkTile: { height: 100, justifyContent: "center", borderWidth: 2, borderColor: colors.dividerZinc, borderRadius: 12, alignItems: "center", gap: 6, backgroundColor: colors.white },
     drinkTileDisabled: { opacity: 0.5, borderColor: colors.surfaceZinc },
+    // iOS only: Android's elevation shadow can't be tinted, so the copper glow
+    // quietly degrades to "no glow" there rather than faking it with a colored view.
+    drinkTileGlow: Platform.select({
+      ios: { shadowColor: colors.copper, shadowOpacity: colors.copperShadowOpacity, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } },
+      default: {},
+    }) as object,
     drinkCheck: { position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: 9999, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
     drinkName: { fontSize: 11, fontWeight: "600", color: colors.slateZinc, textAlign: "center" },
     drinkUnavailable: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: colors.softZinc },
@@ -271,6 +393,10 @@ const styles = (colors: ColorRamp) =>
     noteInput: { marginTop: 8, borderWidth: 1, borderColor: colors.hairlineZinc, borderRadius: 8, padding: 10, fontSize: 13, color: colors.ink, backgroundColor: colors.white, textAlignVertical: "top" },
     summary: { fontSize: 11, fontWeight: "600", color: colors.softZinc },
     submitButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 14 },
+    submitGlow: Platform.select({
+      ios: { shadowColor: colors.copper, shadowOpacity: colors.copperShadowOpacity, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
+      default: {},
+    }) as object,
     submitButtonDisabled: { opacity: 0.5 },
     submitText: { fontSize: 13, fontWeight: "700", color: colors.white },
     blockedBoxSoft: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surfaceZinc, borderWidth: 1, borderColor: colors.dividerZinc, borderRadius: 8, padding: 14 },
