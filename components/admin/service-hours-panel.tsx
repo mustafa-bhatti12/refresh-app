@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, Switch, Platform, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -91,9 +91,11 @@ function DayPicker({ days, onToggle }: { days: number[]; onToggle: (day: number)
   );
 }
 
-type ServiceHour = { id: string; label: string; start_time: string; end_time: string; days_of_week: number[] };
+type ServiceHour = { id: string; label: string; start_time: string; end_time: string; days_of_week: number[]; brewer_id: string };
+type Brewer = { id: string; name: string };
 
 export function ServiceHoursPanel({
+  brewers,
   serviceHours,
   cooldownLimitEnabled,
   onAdd,
@@ -101,16 +103,24 @@ export function ServiceHoursPanel({
   onDelete,
   onToggleCooldown,
 }: {
+  brewers: Brewer[];
   serviceHours: ServiceHour[];
   cooldownLimitEnabled: boolean;
-  onAdd: (label: string, start: string, end: string, days: number[]) => Promise<void>;
-  onUpdate: (id: string, label: string, start: string, end: string, days: number[]) => Promise<void>;
+  onAdd: (brewerId: string, label: string, start: string, end: string, days: number[]) => Promise<void>;
+  onUpdate: (id: string, brewerId: string, label: string, start: string, end: string, days: number[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onToggleCooldown: (enabled: boolean) => Promise<void>;
 }) {
   const colors = useColors();
   const s = styles(colors);
   const [open, setOpen] = useState(false);
+  const [selectedBrewerId, setSelectedBrewerId] = useState(brewers[0]?.id ?? "");
+
+  useEffect(() => {
+    if (!selectedBrewerId && brewers.length > 0) {
+      setSelectedBrewerId(brewers[0].id);
+    }
+  }, [brewers, selectedBrewerId]);
 
   const [newLabel, setNewLabel] = useState("");
   const [newStart, setNewStart] = useState("09:00");
@@ -136,13 +146,13 @@ export function ServiceHoursPanel({
 
   const saveEdit = async () => {
     if (!editingId || !editLabel.trim() || editDays.length === 0) return;
-    await onUpdate(editingId, editLabel, editStart, editEnd, editDays);
+    await onUpdate(editingId, selectedBrewerId, editLabel, editStart, editEnd, editDays);
     setEditingId(null);
   };
 
   const handleAdd = async () => {
-    if (!newLabel.trim() || newDays.length === 0) return;
-    await onAdd(newLabel, newStart, newEnd, newDays);
+    if (!selectedBrewerId || !newLabel.trim() || newDays.length === 0) return;
+    await onAdd(selectedBrewerId, newLabel, newStart, newEnd, newDays);
     setNewLabel("");
     setNewStart("09:00");
     setNewEnd("17:00");
@@ -155,23 +165,41 @@ export function ServiceHoursPanel({
         style={s.headerRow}
         onPress={() => setOpen((v) => !v)}
         accessibilityRole="button"
-        accessibilityLabel="Service Availability"
+        accessibilityLabel="Brewer Working Hours"
         accessibilityState={{ expanded: open }}
       >
         <View style={{ flex: 1 }}>
-          <Text style={s.title}>Service Availability</Text>
+          <Text style={s.title}>Brewer Working Hours</Text>
           <Text style={s.headerMeta}>{serviceHours.length} slot{serviceHours.length !== 1 ? "s" : ""}{cooldownLimitEnabled ? " · cooldown on" : ""}</Text>
         </View>
         <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={16} color={colors.softZinc} />
       </Pressable>
       {open && (
       <View style={s.body}>
-      <Text style={s.subtitle}>Employees can order if the current time matches any slot.</Text>
+      <Text style={s.subtitle}>Set each brewer&apos;s working hours. They&apos;re automatically marked inactive outside these hours unless they turn themselves back on.</Text>
 
-      {serviceHours.length === 0 ? (
-        <Text style={s.emptyText}>No active service hours configured.</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+        {brewers.map((bwr) => {
+          const active = bwr.id === selectedBrewerId;
+          return (
+            <Pressable
+              key={bwr.id}
+              onPress={() => setSelectedBrewerId(bwr.id)}
+              style={[s.dayChip, active && s.dayChipActive]}
+              accessibilityRole="button"
+              accessibilityLabel={bwr.name}
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[s.dayChipText, active && s.dayChipTextActive]}>{bwr.name}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {serviceHours.filter((slot) => slot.brewer_id === selectedBrewerId).length === 0 ? (
+        <Text style={s.emptyText}>No working hours configured for this brewer.</Text>
       ) : (
-        serviceHours.map((slot) => {
+        serviceHours.filter((slot) => slot.brewer_id === selectedBrewerId).map((slot) => {
           const isEditing = editingId === slot.id;
           return (
             <View key={slot.id} style={s.slotRow}>

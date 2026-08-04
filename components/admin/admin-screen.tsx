@@ -168,6 +168,7 @@ export function AdminScreen() {
         />
 
         <ServiceHoursPanel
+          brewers={brewers}
           serviceHours={serviceHours}
           cooldownLimitEnabled={cooldownLimitEnabled}
           onAdd={addServiceHour}

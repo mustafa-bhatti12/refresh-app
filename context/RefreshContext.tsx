@@ -112,10 +112,10 @@ interface RefreshContextType {
   updateBrewer: (id: string, name: string, contact: string) => Promise<void>;
   updateBrewerStatus: (id: string, status: "Active" | "On Break" | "Off") => Promise<void>;
   systemDate: string;
-  serviceHours: { id: string; label: string; start_time: string; end_time: string; days_of_week: number[] }[];
-  addServiceHour: (label: string, start: string, end: string, daysOfWeek: number[]) => Promise<void>;
+  serviceHours: { id: string; label: string; start_time: string; end_time: string; days_of_week: number[]; brewer_id: string }[];
+  addServiceHour: (brewerId: string, label: string, start: string, end: string, daysOfWeek: number[]) => Promise<void>;
   deleteServiceHour: (id: string) => Promise<void>;
-  updateServiceHour: (id: string, label: string, start: string, end: string, daysOfWeek: number[]) => Promise<void>;
+  updateServiceHour: (id: string, brewerId: string, label: string, start: string, end: string, daysOfWeek: number[]) => Promise<void>;
   updateAvatarUrl: (avatarUrl: string) => Promise<void>;
   getDailyOrderNumber: (orderId: string, createdAt: string) => string;
   needsRoleSelection: boolean;
@@ -142,7 +142,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [brewerInvites, setBrewerInvites] = useState<BrewerInvite[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [serviceHours, setServiceHours] = useState<
-    { id: string; label: string; start_time: string; end_time: string; days_of_week: number[] }[]
+    { id: string; label: string; start_time: string; end_time: string; days_of_week: number[]; brewer_id: string }[]
   >([]);
   const [cooldownLimitEnabled, setCooldownLimitEnabled] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -485,7 +485,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const fetchServiceHours = useCallback(async () => {
     try {
-      const { data, error } = await supabase.from("service_hours").select("id, label, start_time, end_time, days_of_week").order("start_time", { ascending: true });
+      const { data, error } = await supabase.from("service_hours").select("id, label, start_time, end_time, days_of_week, brewer_id").order("start_time", { ascending: true });
       if (error) {
         console.error("Error fetching service hours:", error.message);
         return;
@@ -498,6 +498,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
             start_time: slot.start_time.substring(0, 5),
             end_time: slot.end_time.substring(0, 5),
             days_of_week: slot.days_of_week ?? [0, 1, 2, 3, 4, 5, 6],
+            brewer_id: slot.brewer_id,
           }))
         );
       }
@@ -778,7 +779,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
           void writeAuthCache(next, needsRoleSelection);
           return next;
         });
-        const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
+        const { error } = await supabase.rpc("set_brewer_status", { p_brewer_id: id, p_status: status });
         if (error) console.error("Error updating status:", error.message);
       } catch (err) {
         console.error("Exception updating status:", err);
@@ -787,9 +788,9 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [needsRoleSelection]
   );
 
-  const addServiceHour = useCallback(async (label: string, start: string, end: string, daysOfWeek: number[]) => {
+  const addServiceHour = useCallback(async (brewerId: string, label: string, start: string, end: string, daysOfWeek: number[]) => {
     try {
-      const { error } = await supabase.from("service_hours").insert({ label: label.trim(), start_time: `${start}:00`, end_time: `${end}:00`, days_of_week: daysOfWeek });
+      const { error } = await supabase.from("service_hours").insert({ brewer_id: brewerId, label: label.trim(), start_time: `${start}:00`, end_time: `${end}:00`, days_of_week: daysOfWeek });
       if (error) console.error("Error adding service hour:", error.message);
     } catch (err) {
       console.error("Exception adding service hour:", err);
@@ -805,11 +806,12 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  const updateServiceHour = useCallback(async (id: string, label: string, start: string, end: string, daysOfWeek: number[]) => {
+  const updateServiceHour = useCallback(async (id: string, brewerId: string, label: string, start: string, end: string, daysOfWeek: number[]) => {
     try {
       const { error } = await supabase
         .from("service_hours")
         .update({
+          brewer_id: brewerId,
           label: label.trim(),
           start_time: start.split(":").length === 2 ? `${start}:00` : start,
           end_time: end.split(":").length === 2 ? `${end}:00` : end,
