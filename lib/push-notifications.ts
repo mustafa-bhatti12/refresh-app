@@ -3,6 +3,18 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 
+// Shows a banner for incoming pushes even while the app is foregrounded —
+// otherwise Expo suppresses them by default and only background/killed
+// delivery would be visible.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
 // ponytail: one token per profile, overwritten on each app-open — add a
 // push_tokens table if multiple simultaneous devices per user matter later.
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
@@ -17,6 +29,14 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
     });
     await Notifications.setNotificationChannelAsync("order-ready", {
       name: "Order ready",
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+    await Notifications.setNotificationChannelAsync("brewer-status", {
+      name: "Brewer status",
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+    await Notifications.setNotificationChannelAsync("order-cancelled", {
+      name: "Order cancelled",
       importance: Notifications.AndroidImportance.HIGH,
     });
   }
