@@ -7,7 +7,6 @@ import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { signInWithGoogle } from "@/lib/google-signin";
-import { AuroraBackground } from "@/components/aurora-background";
 
 function GoogleLogo({ size = 18 }: { size?: number }) {
   return (
@@ -42,7 +41,6 @@ export default function SignInScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-      <AuroraBackground />
       <Animated.View entering={FadeInDown.duration(450)} style={s.card}>
         <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" tintColor={colors.ink} />
         <Text style={s.title}>Welcome to Refresh</Text>

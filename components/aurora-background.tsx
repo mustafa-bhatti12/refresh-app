@@ -1,19 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { PixelRatio, StyleSheet, View, type LayoutChangeEvent } from "react-native";
+import { AppState, PixelRatio, StyleSheet, View, type LayoutChangeEvent } from "react-native";
 import { GLView, type ExpoWebGLRenderingContext } from "expo-gl";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 
-// Ported from refresh-web/src/components/reactbits/Aurora/Aurora.tsx —
-// same shader, same math, same ogl library. The only RN-specific part is below:
-// expo-gl hands back a raw WebGL2 context (no DOM canvas), and ogl's Renderer
-// insists on calling `canvas.getContext()` and poking `gl.canvas.width/style`.
-// A tiny stub object satisfies both without touching ogl's source.
-//
-// Softness/perf: web Aurora uses ogl's default dpr:1 (1 buffer pixel per CSS
-// pixel, then the browser upscales). expo-gl always allocates the backing
-// store at device pixels, so a full-bleed GLView is ~2–3× denser than web and
-// looks crunchier + drops frames. Layout the GLView at (logical / pr) points
-// and scale it back up by pr — backing store lands at 1× logical, matching web.
+// Ported from refresh-web Aurora. Perf notes:
+// - expo-gl always allocates at device pixels; we layout the GLView small and
+//   scale it up so the fragment shader runs at ~0.5× logical resolution
+//   (web uses 1×). Soft upscale is fine for this effect; FPS matters more.
+// - MSAA off — upscaling already softens edges, and MSAA is expensive on iOS.
+// - depth buffer off; only uTime updates per frame.
 const VERT = `#version 300 es
 in vec2 position;
 void main() {
@@ -121,18 +116,27 @@ void main() {
 `;
 
 const AURORA_STOPS = ["#AD7547", "#C36C59", "#916444"];
+/** Buffer pixels per logical point. 0.5 ≈ half web's cost; soft scale hides it. */
+const QUALITY = 0.5;
 
 export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }: { amplitude?: number; blend?: number; speed?: number }) {
-  const speedRef = useRef({ amplitude, blend, speed });
-  speedRef.current = { amplitude, blend, speed };
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
   const animateIdRef = useRef(0);
+  const runningRef = useRef(true);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const pr = PixelRatio.get();
+  const scale = PixelRatio.get() / QUALITY;
 
-  // GLView has no onContextCreate cleanup callback — cancel the RAF loop
-  // ourselves on unmount so it doesn't keep calling gl methods on a torn-down
-  // native context (the web version's `useEffect` return does this for free).
-  useEffect(() => () => cancelAnimationFrame(animateIdRef.current), []);
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      runningRef.current = state === "active";
+    });
+    return () => {
+      runningRef.current = false;
+      cancelAnimationFrame(animateIdRef.current);
+      sub.remove();
+    };
+  }, []);
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -141,7 +145,6 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
   };
 
   const onContextCreate = (exgl: ExpoWebGLRenderingContext) => {
-    // See file header — stub just enough of a "canvas" for ogl to leave alone.
     (exgl as unknown as { canvas: unknown }).canvas = {
       width: exgl.drawingBufferWidth,
       height: exgl.drawingBufferHeight,
@@ -152,16 +155,13 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
       canvas: { getContext: () => exgl } as unknown as HTMLCanvasElement,
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true,
+      depth: false,
       width: exgl.drawingBufferWidth,
       height: exgl.drawingBufferHeight,
       dpr: 1,
     });
-    // Same object as `exgl`, just typed the way ogl expects (it stamped a
-    // `.renderer` back-reference onto it above) — use this for every ogl call.
     const gl = renderer.gl;
 
-    // Match web Aurora compositing (transparent clear + premultiplied blend).
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -170,11 +170,6 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
     if (geometry.attributes.uv) {
       delete geometry.attributes.uv;
     }
-
-    const colorStopsArray = AURORA_STOPS.map((hex) => {
-      const c = new Color(hex);
-      return [c.r, c.g, c.b];
-    });
 
     const program = new Program(gl, {
       vertex: VERT,
@@ -185,7 +180,12 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
       uniforms: {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
-        uColorStops: { value: colorStopsArray },
+        uColorStops: {
+          value: AURORA_STOPS.map((hex) => {
+            const c = new Color(hex);
+            return [c.r, c.g, c.b];
+          }),
+        },
         uResolution: { value: [exgl.drawingBufferWidth, exgl.drawingBufferHeight] },
         uBlend: { value: blend },
       },
@@ -195,33 +195,29 @@ export function AuroraBackground({ amplitude = 0.45, blend = 0.7, speed = 1.6 }:
 
     const update = (t: number) => {
       animateIdRef.current = requestAnimationFrame(update);
-      const { amplitude: a, blend: b, speed: s } = speedRef.current;
-      program.uniforms.uTime.value = t * 0.01 * s * 0.1;
-      program.uniforms.uAmplitude.value = a;
-      program.uniforms.uBlend.value = b;
+      if (!runningRef.current) return;
+      program.uniforms.uTime.value = t * 0.01 * speedRef.current * 0.1;
       renderer.render({ scene: mesh });
-      // expo-gl specific: sync + present. No equivalent needed on the web,
-      // where the browser flips the canvas's backing buffer automatically.
-      exgl.flushEXP();
       exgl.endFrameEXP();
     };
     animateIdRef.current = requestAnimationFrame(update);
   };
 
-  const gw = size.w / pr;
-  const gh = size.h / pr;
+  const gw = size.w / scale;
+  const gh = size.h / scale;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none" onLayout={onLayout}>
       {size.w > 0 && (
         <GLView
+          msaaSamples={0}
           style={{
             width: gw,
             height: gh,
             transform: [
               { translateX: (size.w - gw) / 2 },
               { translateY: (size.h - gh) / 2 },
-              { scale: pr },
+              { scale },
             ],
           }}
           onContextCreate={onContextCreate}
