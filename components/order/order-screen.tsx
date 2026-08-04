@@ -14,36 +14,11 @@ const COOLDOWN_MINS = 180;
 export function OrderScreen() {
   const colors = useColors();
   const s = styles(colors);
-  const { currentUser, orders, brewers, serviceHours, cooldownLimitEnabled, placeOrder, dataLoading } = useRefresh();
+  const { currentUser, orders, brewers, cooldownLimitEnabled, placeOrder, dataLoading } = useRefresh();
 
-  const [isAvailable, setIsAvailable] = useState(true);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    const check = () => {
-      if (serviceHours.length === 0) {
-        setIsAvailable(false);
-        return;
-      }
-      const now = new Date();
-      const currentDay = now.getDay();
-      const currentTimeVal = now.getHours() * 60 + now.getMinutes();
-      const matched = serviceHours.some((slot) => {
-        if (!slot.days_of_week.includes(currentDay)) return false;
-        const [startHrs, startMins] = slot.start_time.split(":").map(Number);
-        const [endHrs, endMins] = slot.end_time.split(":").map(Number);
-        const startTimeVal = startHrs * 60 + startMins;
-        const endTimeVal = endHrs * 60 + endMins;
-        return currentTimeVal >= startTimeVal && currentTimeVal <= endTimeVal;
-      });
-      setIsAvailable(matched);
-    };
-    check();
-    const interval = setInterval(check, 15000);
-    return () => clearInterval(interval);
-  }, [serviceHours]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -105,7 +80,6 @@ export function OrderScreen() {
         </View>
 
         <OrderForm
-          isAvailable={isAvailable}
           hasActiveOrder={hasActiveOrder}
           cooldownRemaining={cooldownRemaining}
           noBrewersActive={noBrewersActive}

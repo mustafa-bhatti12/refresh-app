@@ -29,13 +29,11 @@ function formatCooldown(mins: number) {
 }
 
 export function OrderForm({
-  isAvailable,
   hasActiveOrder,
   cooldownRemaining,
   noBrewersActive,
   onSubmit,
 }: {
-  isAvailable: boolean;
   hasActiveOrder: boolean;
   cooldownRemaining: number;
   noBrewersActive: boolean;
@@ -212,12 +210,7 @@ export function OrderForm({
         </Text>
       )}
 
-      {!isAvailable ? (
-        <View style={s.blockedBox}>
-          <HugeiconsIcon icon={Cancel01Icon} size={16} color={colors.ink} />
-          <Text style={s.blockedText}>Ordering Closed: Beverages are only available during the configured service slots.</Text>
-        </View>
-      ) : noBrewersActive ? (
+      {noBrewersActive ? (
         <View style={s.blockedBoxSoft}>
           <HugeiconsIcon icon={Alert02Icon} size={16} color={colors.midZinc} />
           <Text style={s.blockedTextSoft}>Ordering Unavailable: No brewers are currently Active (all brewers are On Break or Off).</Text>
@@ -280,8 +273,6 @@ const styles = (colors: ColorRamp) =>
     submitButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: colors.ink, borderRadius: 8, paddingVertical: 14 },
     submitButtonDisabled: { opacity: 0.5 },
     submitText: { fontSize: 13, fontWeight: "700", color: colors.white },
-    blockedBox: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.white, borderWidth: 2, borderColor: colors.ink, borderRadius: 8, padding: 14 },
-    blockedText: { flex: 1, fontSize: 11, fontWeight: "600", color: colors.ink },
     blockedBoxSoft: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surfaceZinc, borderWidth: 1, borderColor: colors.dividerZinc, borderRadius: 8, padding: 14 },
     blockedTextSoft: { flex: 1, fontSize: 11, fontWeight: "600", color: colors.midZinc },
   });
