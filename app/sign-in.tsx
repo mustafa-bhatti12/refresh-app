@@ -2,10 +2,12 @@ import { useState } from "react";
 import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { signInWithGoogle } from "@/lib/google-signin";
+import { AuroraBackground } from "@/components/aurora-background";
 
 function GoogleLogo({ size = 18 }: { size?: number }) {
   return (
@@ -24,6 +26,9 @@ export default function SignInScreen() {
   const insets = useSafeAreaInsets();
   const [signingIn, setSigningIn] = useState(false);
 
+  const scale = useSharedValue(1);
+  const buttonStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   const handleSignIn = async () => {
     setSigningIn(true);
     try {
@@ -37,28 +42,44 @@ export default function SignInScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-      <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" tintColor={colors.ink} />
-      <Text style={s.title}>Welcome to Refresh</Text>
-      <Text style={s.subtitle}>Sign in with your work Google account to get started.</Text>
+      <AuroraBackground />
+      <Animated.View entering={FadeInDown.duration(450)} style={s.card}>
+        <Image source={require("@/assets/images/logo.png")} style={s.logo} contentFit="contain" tintColor={colors.ink} />
+        <Text style={s.title}>Welcome to Refresh</Text>
+        <Text style={s.subtitle}>Sign in with your work Google account to get started.</Text>
 
-      <Pressable
-        style={[s.button, signingIn && s.buttonDisabled]}
-        onPress={handleSignIn}
-        disabled={signingIn}
-        accessibilityRole="button"
-        accessibilityLabel="Continue with Google"
-        accessibilityState={{ disabled: signingIn, busy: signingIn }}
-      >
-        {!signingIn && <GoogleLogo size={18} />}
-        <Text style={s.buttonText}>{signingIn ? "Signing in…" : "Continue with Google"}</Text>
-      </Pressable>
+        <Pressable
+          onPress={handleSignIn}
+          onPressIn={() => { scale.value = withSpring(0.97, { damping: 16, stiffness: 320 }); }}
+          onPressOut={() => { scale.value = withSpring(1, { damping: 14, stiffness: 260 }); }}
+          disabled={signingIn}
+          accessibilityRole="button"
+          accessibilityLabel="Continue with Google"
+          accessibilityState={{ disabled: signingIn, busy: signingIn }}
+        >
+          <Animated.View style={[s.button, buttonStyle, signingIn && s.buttonDisabled]}>
+            {!signingIn && <GoogleLogo size={18} />}
+            <Text style={s.buttonText}>{signingIn ? "Signing in…" : "Continue with Google"}</Text>
+          </Animated.View>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = (colors: ColorRamp) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", padding: 24 },
+    container: { flex: 1, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", padding: 24, overflow: "hidden" },
+    card: {
+      width: "100%",
+      maxWidth: 380,
+      alignItems: "center",
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.dividerZinc,
+      borderRadius: 20,
+      padding: 28,
+    },
     logo: { width: 72, height: 72 },
     title: { fontSize: 26, fontWeight: "800", letterSpacing: -0.3, color: colors.ink, marginTop: 20, textAlign: "center" },
     subtitle: { fontSize: 14, color: colors.quietZinc, textAlign: "center", marginTop: 8, lineHeight: 20, paddingHorizontal: 12 },

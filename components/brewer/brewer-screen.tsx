@@ -11,6 +11,7 @@ import type { ColorRamp } from "@/constants/colors";
 import { useRefresh, type Order } from "@/context/RefreshContext";
 import { useBrewerStats } from "@/hooks/use-brewer-stats";
 import { CardSkeleton } from "@/components/card-skeleton";
+import { Counter } from "@/components/counter";
 import { OrderRow } from "./order-row";
 import { CompletedOrderRow } from "./completed-order-row";
 import { OrderStatusSection } from "./order-status-section";
@@ -323,7 +324,11 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
                   <HugeiconsIcon icon={item.icon} size={20} color={isActive ? colors.ink : colors.softZinc} strokeWidth={isActive ? 2 : 1.5} />
                   {count > 0 && (
                     <View style={s.navBadge}>
-                      <Text style={s.navBadgeText}>{count > 9 ? "9+" : count}</Text>
+                      {count > 9 ? (
+                        <Text style={s.navBadgeText}>9+</Text>
+                      ) : (
+                        <Counter value={count} fontSize={9} fontWeight="700" color={colors.white} />
+                      )}
                     </View>
                   )}
                 </View>

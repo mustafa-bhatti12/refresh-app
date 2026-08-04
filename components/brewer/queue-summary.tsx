@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
+import { Counter } from "@/components/counter";
 
 export function QueueSummary({
   ordersAhead,
@@ -20,9 +21,9 @@ export function QueueSummary({
     <View style={s.card}>
       <Text style={s.title}>Queue Overview</Text>
       <View style={s.row}>
-        <StatCell label="Orders Ahead" value={String(ordersAhead)} colors={colors} />
-        <StatCell label="Preparing" value={String(inPreparation)} colors={colors} />
-        <StatCell label="Ready" value={String(ready)} colors={colors} />
+        <StatCell label="Orders Ahead" value={ordersAhead} colors={colors} />
+        <StatCell label="Preparing" value={inPreparation} colors={colors} />
+        <StatCell label="Ready" value={ready} colors={colors} />
       </View>
       {estWaitMins !== null && (
         <Text style={s.waitText}>Estimated wait: ~{estWaitMins} min</Text>
@@ -31,10 +32,10 @@ export function QueueSummary({
   );
 }
 
-function StatCell({ label, value, colors }: { label: string; value: string; colors: ColorRamp }) {
+function StatCell({ label, value, colors }: { label: string; value: number; colors: ColorRamp }) {
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 22, fontWeight: "800", color: colors.ink }}>{value}</Text>
+      <Counter value={value} fontSize={22} fontWeight="800" color={colors.ink} />
       <Text style={{ fontSize: 11, fontWeight: "600", color: colors.softZinc, marginTop: 2 }}>{label}</Text>
     </View>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, Alert, StyleSheet, FlatList } from "react-native";
+import Animated, { FadeInDown, FadeOutRight, LinearTransition } from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   InboxIcon,
@@ -14,6 +15,7 @@ import {
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import type { Order } from "@/context/RefreshContext";
+import { Counter } from "@/components/counter";
 import { StatusBadge } from "./status-badge";
 import { EditOrderForm } from "./edit-order-form";
 
@@ -95,7 +97,8 @@ export function MyOrdersPanel({
       <View style={s.headerRow}>
         <Text style={s.title}>My Recent Orders</Text>
         <View style={s.countPill}>
-          <Text style={s.countText}>{orders.length} total</Text>
+          <Counter value={orders.length} fontSize={11} fontWeight="600" color={colors.midZinc} />
+          <Text style={s.countText}> total</Text>
         </View>
       </View>
 
@@ -142,7 +145,7 @@ export function MyOrdersPanel({
           order.status === "Pending" || order.status === "In Progress" ? queuePositionOf(order.id) : null;
 
         return (
-          <View style={s.orderRow}>
+          <Animated.View entering={FadeInDown.duration(280)} exiting={FadeOutRight.duration(220)} layout={LinearTransition.duration(220)} style={s.orderRow}>
             {isEditing ? (
               <EditOrderForm
                 order={order}
@@ -169,7 +172,9 @@ export function MyOrdersPanel({
                   {queuePosition && (
                     <View style={s.queuePill}>
                       <HugeiconsIcon icon={Queue01Icon} size={11} color={colors.midZinc} />
-                      <Text style={s.queuePillText}>#{queuePosition} in queue</Text>
+                      <Text style={s.queuePillText}>#</Text>
+                      <Counter value={queuePosition} fontSize={11} fontWeight="700" color={colors.midZinc} />
+                      <Text style={s.queuePillText}> in queue</Text>
                     </View>
                   )}
                   <EditGraceTrigger order={order} onEditClick={() => setEditingOrderId(order.id)} />
@@ -210,7 +215,7 @@ export function MyOrdersPanel({
                 </View>
               </View>
             )}
-          </View>
+          </Animated.View>
         );
       }}
     />
@@ -225,7 +230,7 @@ const styles = (colors: ColorRamp) =>
     headerBlock: { marginBottom: 4 },
     headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
     title: { fontSize: 18, fontWeight: "700", color: colors.ink },
-    countPill: { backgroundColor: colors.surfaceZinc, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+    countPill: { flexDirection: "row", alignItems: "center", backgroundColor: colors.surfaceZinc, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
     countText: { fontSize: 11, fontWeight: "600", color: colors.midZinc },
     reorderRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.dividerZinc, backgroundColor: colors.surfaceZinc, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
     reorderText: { fontSize: 12, fontWeight: "600", color: colors.slateZinc, flexShrink: 1 },

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, ScrollView, Alert, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 import { useRefresh } from "@/context/RefreshContext";
@@ -91,9 +92,9 @@ export function OrderScreen() {
       </ScrollView>
 
       {toast && (
-        <View style={s.toast}>
+        <Animated.View entering={FadeInDown.duration(240)} exiting={FadeOutDown.duration(200)} style={s.toast}>
           <Text style={s.toastText}>{toast}</Text>
-        </View>
+        </Animated.View>
       )}
     </KeyboardAvoidingView>
   );
