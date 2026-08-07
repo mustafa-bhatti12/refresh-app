@@ -29,6 +29,7 @@ export function AnalyticsPanel({
   const activeOrders = dayOrders.filter((o) => o.status === "Ready").length;
   const deliveredOrders = dayOrders.filter((o) => o.status === "Delivered").length;
   const notFoundOrders = dayOrders.filter((o) => o.status === "Not Found").length;
+  const staleOrders = dayOrders.filter((o) => o.status === "Stale").length;
 
   const floorCounts: Record<string, number> = {};
   floors.forEach((f) => (floorCounts[f] = dayOrders.filter((o) => o.floor === f).length));
@@ -53,6 +54,7 @@ export function AnalyticsPanel({
         <StatTile label="Ready" value={String(activeOrders)} />
         <StatTile label="Delivered" value={String(deliveredOrders)} emphasis="ink" />
         <StatTile label="Not Found" value={String(notFoundOrders)} emphasis="outline" />
+        <StatTile label="Auto-Cancelled" value={String(staleOrders)} emphasis="outline" />
         <StatTile label="Avg Satisfaction" value={avgRating} />
       </View>
 

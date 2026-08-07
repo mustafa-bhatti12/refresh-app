@@ -195,7 +195,9 @@ export function MyOrdersPanel({
                 </View>
                 <View style={{ alignItems: "flex-end", gap: 8 }}>
                   <StatusBadge status={order.status} />
-                  {order.status === "Delivered" && order.feedbackComments !== "__NOT_FOUND__" && (
+                  {order.status === "Delivered" &&
+                    order.feedbackComments !== "__NOT_FOUND__" &&
+                    order.feedbackComments !== "__STALE__" && (
                     hasReview ? (
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} color={colors.quietZinc} />

@@ -20,7 +20,7 @@ export interface Order {
   floor: string;
   drink: string;
   sugar: string;
-  status: "Pending" | "Ready" | "Delivered" | "Not Found";
+  status: "Pending" | "Ready" | "Delivered" | "Not Found" | "Stale";
   brewerId?: string | null;
   brewerName?: string | null;
   createdAt: string;
@@ -394,15 +394,28 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
         brewerName: o.brewer?.name || null,
         strength: o.strength,
         note: o.note,
-        status: o.status === "Delivered" && o.feedback_comments === "__NOT_FOUND__" ? ("Not Found" as const) : o.status,
+        status:
+          o.status === "Delivered" && o.feedback_comments === "__NOT_FOUND__"
+            ? ("Not Found" as const)
+            : o.status === "Delivered" && o.feedback_comments === "__STALE__"
+            ? ("Stale" as const)
+            : o.status,
         createdAt: o.created_at,
         updatedAt: o.updated_at || o.created_at,
-        feedbackRating: o.feedback_comments === "__NOT_FOUND__" ? null : o.feedback_rating,
+        feedbackRating:
+          o.feedback_comments === "__NOT_FOUND__" || o.feedback_comments === "__STALE__"
+            ? null
+            : o.feedback_rating,
         feedbackComments: o.feedback_comments,
       }));
       setOrders(mappedOrders);
       const mappedReviews = data
-        .filter((o: any) => o.feedback_rating !== null && o.feedback_comments !== "__NOT_FOUND__")
+        .filter(
+          (o: any) =>
+            o.feedback_rating !== null &&
+            o.feedback_comments !== "__NOT_FOUND__" &&
+            o.feedback_comments !== "__STALE__"
+        )
         .map((o: any) => ({
           id: o.id,
           orderId: o.id,
@@ -693,6 +706,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
             o.employeeId === currentUser.id &&
             o.status === "Delivered" &&
             o.feedbackComments !== "__NOT_FOUND__" &&
+            o.feedbackComments !== "__STALE__" &&
             (o.feedbackRating === undefined || o.feedbackRating === null)
         )
       : undefined;

@@ -74,7 +74,7 @@ export function BrewerScreen({ embedded }: { embedded?: boolean } = {}) {
   const pendingOrders = todaysOrders.filter((o) => o.status === "Pending");
   const readyOrders = todaysOrders.filter((o) => o.status === "Ready");
   const completedOrders = todaysOrders
-    .filter((o) => o.status === "Delivered" || o.status === "Not Found")
+    .filter((o) => o.status === "Delivered" || o.status === "Not Found" || o.status === "Stale")
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const completedList = completedOrders.slice(0, COMPLETED_DISPLAY_LIMIT);
   const hiddenCompletedCount = completedOrders.length - completedList.length;

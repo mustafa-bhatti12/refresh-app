@@ -5,11 +5,12 @@ import {
   DeliveryTruck01Icon,
   CheckmarkCircle02Icon,
   Alert02Icon,
+  HourglassIcon,
 } from "@hugeicons/core-free-icons";
 import { useColors } from "@/constants/use-colors";
 import type { ColorRamp } from "@/constants/colors";
 
-type OrderStatus = "Pending" | "Ready" | "Delivered" | "Not Found";
+type OrderStatus = "Pending" | "Ready" | "Delivered" | "Not Found" | "Stale";
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
   const colors = useColors();
@@ -43,6 +44,13 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
           <Text style={[s.text, { color: colors.ink, fontWeight: "700" }]}>Not Found</Text>
         </View>
       );
+    case "Stale":
+      return (
+        <View style={[s.badge, s.stale]}>
+          <HugeiconsIcon icon={HourglassIcon} size={13} color={colors.midZinc} />
+          <Text style={[s.text, { color: colors.midZinc, fontWeight: "700" }]}>Auto-Cancelled</Text>
+        </View>
+      );
   }
 }
 
@@ -62,4 +70,5 @@ const styles = (colors: ColorRamp) =>
     ready: { backgroundColor: colors.slateZinc, borderColor: colors.slateZinc },
     delivered: { backgroundColor: colors.ink, borderColor: colors.ink },
     notFound: { backgroundColor: colors.white, borderColor: colors.ink, borderWidth: 2 },
+    stale: { backgroundColor: colors.white, borderColor: colors.dividerZinc, borderWidth: 2 },
   });
