@@ -93,7 +93,7 @@ interface RefreshContextType {
   updateOrderStatus: (
     id: string,
     status: "Pending" | "Ready" | "Delivered" | "Not Found",
-    expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found"
+    expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found" | "Stale"
   ) => Promise<void>;
   refreshOrders: () => Promise<void>;
   updateOrderDetails: (id: string, drink: string, sugar: string, floor: string) => Promise<void>;
@@ -660,7 +660,7 @@ export const RefreshProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (
       id: string,
       newStatus: "Pending" | "Ready" | "Delivered" | "Not Found",
-      expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found"
+      expectedCurrentStatus?: "Pending" | "Ready" | "Delivered" | "Not Found" | "Stale"
     ) => {
       let updatePayload: Record<string, unknown> = { status: newStatus, brewer_id: currentUser?.id };
       if (newStatus === "Not Found") {
